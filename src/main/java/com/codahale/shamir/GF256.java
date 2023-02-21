@@ -17,7 +17,7 @@ package com.codahale.shamir;
 
 import static java.lang.Byte.toUnsignedInt;
 
-import java.security.SecureRandom;
+import java.util.Random;
 
 /**
  * An implementation of polynomials over {@code GF(256)}. Uses the same field polynomial ({@code
@@ -26,7 +26,7 @@ import java.security.SecureRandom;
  * @see <a href="https://research.swtch.com/field">Finite Field Arithmetic and Reed-Solomon
  *     Coding</a>
  */
-class GF256 {
+public class GF256 {
     private GF256() {
         // a singleton
     }
@@ -166,7 +166,7 @@ class GF256 {
         return mul(a, EXP[255 - toUnsignedInt(LOG[toUnsignedInt(b)])]);
     }
 
-    static byte eval(byte[] p, byte x) {
+    public static byte eval(byte[] p, byte x) {
         // Horner's method
         byte result = 0;
         for (int i = p.length - 1; i >= 0; i--) {
@@ -184,7 +184,7 @@ class GF256 {
         return 0;
     }
 
-    static byte[] generate(SecureRandom random, int degree, byte x) {
+    public static byte[] generate(Random random, int degree, byte x) {
         final byte[] p = new byte[degree + 1];
 
         // generate random polynomials until we find one of the given degree

@@ -15,7 +15,7 @@
  */
 package com.codahale.shamir;
 
-import java.security.SecureRandom;
+import java.util.Random;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,18 +36,18 @@ import java.util.StringJoiner;
  */
 public class Scheme {
 
-    private final SecureRandom random;
+    private final Random random;
     private final int n;
     private final int k;
 
     /**
      * Creates a new {@link Scheme} instance.
      *
-     * @param random a {@link SecureRandom} instance
+     * @param random a {@link Random} instance
      * @param n the number of parts to produce (must be {@code >1})
      * @param k the threshold of joinable parts (must be {@code <= n})
      */
-    public Scheme(SecureRandom random, int n, int k) {
+    public Scheme(Random random, int n, int k) {
         this.random = random;
         checkArgument(k > 1, "K must be > 1");
         checkArgument(n >= k, "N must be >= K");
@@ -64,11 +64,18 @@ public class Scheme {
      * @return a map of {@code n} part IDs and their values
      */
     public Map<Integer, byte[]> split(byte[] secret) {
+        System.out.println("Split called");
+
         // generate part values
         final byte[][] values = new byte[n][secret.length];
         for (int i = 0; i < secret.length; i++) {
             // for each byte, generate a random polynomial, p
             final byte[] p = GF256.generate(random, k - 1, secret[i]);
+            System.out.print("Polynomial");
+            for (byte b : p) {
+                System.out.print(" " + b);
+            }
+            System.out.println();
             for (int x = 1; x <= n; x++) {
                 // each part's byte is p(partId)
                 values[x - 1][i] = GF256.eval(p, (byte) x);
