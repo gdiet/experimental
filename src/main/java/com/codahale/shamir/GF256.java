@@ -31,7 +31,7 @@ public class GF256 {
         // a singleton
     }
 
-    private static final byte[] LOG = {
+    public static final byte[] LOG = {
             (byte) 0xff, (byte) 0x00, (byte) 0x19, (byte) 0x01, (byte) 0x32, (byte) 0x02, (byte) 0x1a,
             (byte) 0xc6, (byte) 0x4b, (byte) 0xc7, (byte) 0x1b, (byte) 0x68, (byte) 0x33, (byte) 0xee,
             (byte) 0xdf, (byte) 0x03, (byte) 0x64, (byte) 0x04, (byte) 0xe0, (byte) 0x0e, (byte) 0x34,
@@ -70,7 +70,7 @@ public class GF256 {
             (byte) 0x31, (byte) 0xfe, (byte) 0x18, (byte) 0x0d, (byte) 0x63, (byte) 0x8c, (byte) 0x80,
             (byte) 0xc0, (byte) 0xf7, (byte) 0x70, (byte) 0x07,
     };
-    private static final byte[] EXP = {
+    public static final byte[] EXP = {
             (byte) 0x01, (byte) 0x03, (byte) 0x05, (byte) 0x0f, (byte) 0x11, (byte) 0x33, (byte) 0x55,
             (byte) 0xff, (byte) 0x1a, (byte) 0x2e, (byte) 0x72, (byte) 0x96, (byte) 0xa1, (byte) 0xf8,
             (byte) 0x13, (byte) 0x35, (byte) 0x5f, (byte) 0xe1, (byte) 0x38, (byte) 0x48, (byte) 0xd8,
@@ -154,14 +154,14 @@ public class GF256 {
         return add(a, b);
     }
 
-    static byte mul(byte a, byte b) {
+    public static byte mul(byte a, byte b) {
         if (a == 0 || b == 0) {
             return 0;
         }
         return EXP[toUnsignedInt(LOG[toUnsignedInt(a)]) + toUnsignedInt(LOG[toUnsignedInt(b)])];
     }
 
-    static byte div(byte a, byte b) {
+    public static byte div(byte a, byte b) {
         // multiply by the inverse of b
         return mul(a, EXP[255 - toUnsignedInt(LOG[toUnsignedInt(b)])]);
     }
@@ -175,30 +175,28 @@ public class GF256 {
         return result;
     }
 
-    static int degree(byte[] p) {
-        for (int i = p.length - 1; i >= 1; i--) {
-            if (p[i] != 0) {
-                return i;
-            }
-        }
-        return 0;
-    }
+//    static int degree(byte[] p) {
+//        for (int i = p.length - 1; i >= 1; i--) {
+//            if (p[i] != 0) {
+//                return i;
+//            }
+//        }
+//        return 0;
+//    }
 
     public static byte[] generate(Random random, int degree, byte x) {
         final byte[] p = new byte[degree + 1];
-
-        // generate random polynomials until we find one of the given degree
-        do {
-            random.nextBytes(p);
-        } while (degree(p) != degree);
-
-        // set y intercept
+        random.nextBytes(p);
+        p[degree] = (byte) random.nextInt(1, 256);
         p[0] = x;
-
         return p;
     }
 
-    static byte interpolate(byte[][] points) {
+    public static byte asByte(int i) {
+        return (byte) i;
+    }
+    
+    public static byte interpolate(byte[][] points) {
         // calculate f(0) of the given points using Lagrangian interpolation
         final byte x = 0;
         byte y = 0;
@@ -210,9 +208,12 @@ public class GF256 {
                 final byte bX = points[j][0];
                 if (i != j) {
                     li = mul(li, div(sub(x, bX), sub(aX, bX)));
+                    System.out.printf("(x - bX): %d  (aX - bX): %d\n", (x - bX), (aX - bX));
+                    System.out.printf("*li: %d  i: %d  j: %d  aX: %d  bX: %d\n", li, i, j, aX, bX);
                 }
             }
             y = add(y, mul(li, aY));
+//            System.out.printf("*y: %d\n", y);
         }
         return y;
     }
