@@ -175,26 +175,11 @@ class GF256 {
         return result;
     }
 
-    static int degree(byte[] p) {
-        for (int i = p.length - 1; i >= 1; i--) {
-            if (p[i] != 0) {
-                return i;
-            }
-        }
-        return 0;
-    }
-
     static byte[] generate(SecureRandom random, int degree, byte x) {
         final byte[] p = new byte[degree + 1];
-
-        // generate random polynomials until we find one of the given degree
-        do {
-            random.nextBytes(p);
-        } while (degree(p) != degree);
-
-        // set y intercept
+        random.nextBytes(p); // First & last random bytes are not used but it's easier to generate them anyway.
+        p[degree] = (byte) random.nextInt(1, 256);
         p[0] = x;
-
         return p;
     }
 
