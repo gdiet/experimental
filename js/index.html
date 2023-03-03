@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shamir's Secret Sharing</title>
+  </head>
+  <body>
+  </body>
+
+<script>
+
+// number 0 .. 255 => hex string 00 .. FF
+const hex   = byte  => byte.toString(16).padStart(2, '0')
+const hexes = array => array.map(byte => hex(byte)).join(" ")
+
+// log and antilog table for GF(256) with generator 3
+a = 0xf6
+const EXP = Array.from({length: 510}, () => { a = (a < 128) ? (a << 1 ^ a) : (a << 1 ^ a ^ 0x11b); return a })
+const LOG = Array.from({length: 256}, (_, i) => i == 0 ? 255 : EXP.indexOf(i))
+
+console.log(hexes(EXP))
+console.log(hexes(LOG))
+
+</script>
+    
+</html>
