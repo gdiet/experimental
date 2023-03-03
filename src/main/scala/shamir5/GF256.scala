@@ -1,21 +1,17 @@
 package shamir5
 
-extension[T] (a: Array[T])
-  def apply(b: Byte): T = a(b.int)
+extension (b: Int)
+  def #+(c: Int): Int = b ^ c
+  def #-(c: Int): Int = b ^ c
+  def times3: Int = if b < 128 then b << 1 ^ b else b << 1 ^ b ^ 0x11b
+  def #*(c: Int): Int = if b == 0 || c == 0 then 0 else EXP(LOG(b) + LOG(c))
+  def #/(c: Int): Int = b #* EXP(255 - LOG(c))
 
-extension (b: Byte)
-  def int: Int = java.lang.Byte.toUnsignedInt(b)
-  def #+(c: Byte): Byte = (b ^ c).toByte
-  def #-(c: Byte): Byte = (b ^ c).toByte
-  def times3: Byte = if b >= 0 then (b << 1 ^ b).toByte else (b << 1 ^ b ^ 0x1b).toByte
-  def #*(c: Byte): Byte = if b == 0 || c == 0 then 0 else EXP(LOG(b) + LOG(c))
-  def #/(c: Byte): Byte = b #* EXP(255 - LOG(c))
-
-val EXP = { var a = 0xf6.toByte; Array.fill(510) { a = a.times3; a } }
+val EXP = { var a = 0xf6; Array.fill(510) { a = a.times3; a } }
 // TODO is LOG(0) used at all??? If not, it might be cleanest to set it to NAN.
-val LOG = (0 to 255).map(i => EXP.indexOf(i.toByte).toByte).toArray
+val LOG = 255 +: (1 to 255).map(i => EXP.indexOf(i)).toArray
 
-def hex(b: Byte): String = f"$b%02x"
+def hex(b: Int): String = f"$b%02x"
 
 @main def tryout(): Unit =
   println(EXP.map(hex).mkString(" "))
