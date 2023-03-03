@@ -22,6 +22,18 @@ function calculate_exp() {
 const EXP = calculate_exp()
 const LOG = Array.from({length: 256}, (_, i) => i == 0 ? 255 : EXP.indexOf(i))
 
+/*
+def split(random: RandomInt, secret: Array[Int], shares: Int, threshold: Int): Seq[Array[Int]] =
+  require((shares < 256) && (shares > 0) && (threshold <= shares) && (threshold > 0)) // FIXME threshold 1 ???
+  val polynomials = secret.map { b => generate(random, threshold - 1, b) }
+  (1 to shares).map { share => polynomials.map { polynomial => eval(polynomial, share) } }
+
+def generate(random: RandomInt, degree: Int, x: Int): Array[Int] =
+  x +: Array.fill(degree - 1)(random(0, 256)) :+ random(1, 256)
+
+def eval(a: Array[Int], x: Int) = a.foldRight(0) { case (b, result) => result #* x #+ b }
+*/
+
 console.log(hexes(EXP))
 console.log(hexes(LOG))
 
