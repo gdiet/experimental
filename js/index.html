@@ -15,8 +15,11 @@ const hex   = byte  => byte.toString(16).padStart(2, '0')
 const hexes = array => array.map(byte => hex(byte)).join(" ")
 
 // log and antilog table for GF(256) with generator 3
-a = 0xf6
-const EXP = Array.from({length: 510}, () => { a = (a < 128) ? (a << 1 ^ a) : (a << 1 ^ a ^ 0x11b); return a })
+function calculate_exp() {
+    a = 0xf6
+    return Array.from({length: 510}, () => { a = (a < 128) ? (a << 1 ^ a) : (a << 1 ^ a ^ 0x11b); return a })
+}
+const EXP = calculate_exp()
 const LOG = Array.from({length: 256}, (_, i) => i == 0 ? 255 : EXP.indexOf(i))
 
 console.log(hexes(EXP))
