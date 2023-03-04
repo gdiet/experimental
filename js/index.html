@@ -15,16 +15,20 @@ const hex   = byte  => byte.toString(16).padStart(2, '0')
 const hexes = array => array.map(byte => hex(byte)).join(" ")
 
 // log and antilog table for GF(256) with generator 3
-function calculate_exp() {
+const calculate_exp = () => {
     a = 0xf6
     return Array.from({length: 510}, () => { a = (a < 128) ? (a << 1 ^ a) : (a << 1 ^ a ^ 0x11b); return a })
 }
 const EXP = calculate_exp()
 const LOG = Array.from({length: 256}, (_, i) => i == 0 ? 255 : EXP.indexOf(i))
 
+// The maximum is exclusive and the minimum is inclusive
+const random = (min, max) => Math.floor(Math.random() * (max - min) + min)
+
 const add  = (a, b) => a ^ b
 const mul  = (a, b) => a == 0 || b == 0 ? 0 : EXP[LOG[a] + LOG[b]]
 const eval = (arr, x) => arr.reduceRight((result, b) => add(mul(result, x), b), 0)
+const generate = (rnd, degree, x) => [x].concat(Array.from({length: degree - 1}, () => rnd(0, 256))).concat([rnd(1, 256)])
 
 console.log("EXP")
 console.log(hexes(EXP))
@@ -35,8 +39,13 @@ console.log(hexes(LOG))
 console.log("")
 
 console.log("eval")
-console.log(eval([20, 20],2))
+console.log(hex(eval([20, 20],2)))
 console.log("")
+
+console.log("generate")
+console.log(hexes(generate(random, 10, 2)))
+console.log("")
+
 
 /*
 def split(random: RandomInt, secret: Array[Int], shares: Int, threshold: Int): Seq[Array[Int]] =
