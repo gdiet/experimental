@@ -14,6 +14,7 @@ val LOG = 255 +: (1 to 255).map(i => EXP.indexOf(i)).toArray
 def hex(b: Int): String = f"$b%02x"
 
 @main def tryout(): Unit =
+  println(20 #* 20)
   println(EXP.map(hex).mkString(" "))
   println()
   println(LOG.map(hex).mkString(" "))

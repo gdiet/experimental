@@ -22,6 +22,22 @@ function calculate_exp() {
 const EXP = calculate_exp()
 const LOG = Array.from({length: 256}, (_, i) => i == 0 ? 255 : EXP.indexOf(i))
 
+const add  = (a, b) => a ^ b
+const mul  = (a, b) => a == 0 || b == 0 ? 0 : EXP[LOG[a] + LOG[b]]
+const eval = (arr, x) => arr.reduceRight((result, b) => add(mul(result, x), b), 0)
+
+console.log("EXP")
+console.log(hexes(EXP))
+console.log("")
+
+console.log("LOG")
+console.log(hexes(LOG))
+console.log("")
+
+console.log("eval")
+console.log(eval([20, 20],2))
+console.log("")
+
 /*
 def split(random: RandomInt, secret: Array[Int], shares: Int, threshold: Int): Seq[Array[Int]] =
   require((shares < 256) && (shares > 0) && (threshold <= shares) && (threshold > 0)) // FIXME threshold 1 ???
@@ -34,8 +50,6 @@ def generate(random: RandomInt, degree: Int, x: Int): Array[Int] =
 def eval(a: Array[Int], x: Int) = a.foldRight(0) { case (b, result) => result #* x #+ b }
 */
 
-console.log(hexes(EXP))
-console.log(hexes(LOG))
 
 </script>
     

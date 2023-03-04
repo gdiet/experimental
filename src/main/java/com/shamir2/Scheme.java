@@ -15,13 +15,13 @@
  */
 package com.shamir2;
 
-
-import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
+import java.util.function.BiFunction;
+import java.util.function.IntConsumer;
 
 /**
  * An implementation of Shamir's Secret Sharing over {@code GF(256)} to securely split secrets into
@@ -37,7 +37,6 @@ import java.util.StringJoiner;
  */
 public class Scheme {
 
-    private final SecureRandom random;
     private final int n;
     private final int k;
 
@@ -48,8 +47,7 @@ public class Scheme {
      * @param n the number of parts to produce (must be {@code >1})
      * @param k the threshold of joinable parts (must be {@code <= n})
      */
-    public Scheme(SecureRandom random, int n, int k) {
-        this.random = random;
+    public Scheme(int n, int k) {
         checkArgument(k > 1, "K must be > 1");
         checkArgument(n >= k, "N must be >= K");
         checkArgument(n <= 255, "N must be <= 255");
@@ -64,7 +62,7 @@ public class Scheme {
      * @param secret the secret to split
      * @return a map of {@code n} part IDs and their values
      */
-    public Map<Integer, byte[]> split(byte[] secret) {
+    public Map<Integer, byte[]> split(byte[] secret, BiFunction<Integer, Integer, Integer> random) {
         // generate part values
         final byte[][] values = new byte[n][secret.length];
         for (int i = 0; i < secret.length; i++) {
@@ -141,18 +139,13 @@ public class Scheme {
             return false;
         }
         final Scheme scheme = (Scheme) o;
-        return n == scheme.n && k == scheme.k && Objects.equals(random, scheme.random);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(random, n, k);
+        throw new RuntimeException("should not be used");
+//        return n == scheme.n && k == scheme.k;
     }
 
     @Override
     public String toString() {
         return new StringJoiner(", ", Scheme.class.getSimpleName() + "[", "]")
-                .add("random=" + random)
                 .add("n=" + n)
                 .add("k=" + k)
                 .toString();

@@ -19,6 +19,7 @@ package com.shamir2;
 import static java.lang.Byte.toUnsignedInt;
 
 import java.security.SecureRandom;
+import java.util.function.BiFunction;
 
 /**
  * An implementation of polynomials over {@code GF(256)}. Uses the same field polynomial ({@code
@@ -185,12 +186,12 @@ class GF256 {
         return 0;
     }
 
-    static byte[] generate(SecureRandom random, int degree, byte x) {
+    static byte[] generate(BiFunction<Integer, Integer, Integer> random, int degree, byte x) {
         final byte[] p = new byte[degree + 1];
 
         // generate random polynomials until we find one of the given degree
         do {
-            random.nextBytes(p);
+            for (int n = 0; n < p.length; n++) p[n] = random.apply(0, 256).byteValue();
         } while (degree(p) != degree);
 
         // set y intercept
