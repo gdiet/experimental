@@ -25,9 +25,10 @@ const LOG = Array.from({length: 256}, (_, i) => i == 0 ? 255 : EXP.indexOf(i))
 // The maximum is exclusive and the minimum is inclusive
 const random = (min, max) => Math.floor(Math.random() * (max - min) + min)
 
-const add  = (a, b) => a ^ b
-const mul  = (a, b) => a == 0 || b == 0 ? 0 : EXP[LOG[a] + LOG[b]]
-const eval = (arr, x) => arr.reduceRight((result, b) => add(mul(result, x), b), 0)
+const add = (a, b) => a ^ b
+const mul = (a, b) => a == 0 || b == 0 ? 0 : EXP[LOG[a] + LOG[b]]
+
+const eval     = (arr, x) => arr.reduceRight((result, b) => add(mul(result, x), b), 0)
 const generate = (rnd, degree, x) => [x].concat(Array.from({length: degree - 1}, () => rnd(0, 256))).concat([rnd(1, 256)])
 
 console.log("EXP")
