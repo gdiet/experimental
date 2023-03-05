@@ -6,9 +6,11 @@
 
 ### Reference Implementation Of Shamir's Secret Sharing
 
+https://crypto.stackexchange.com/q/105502/108144
+
 **Reference implementation of Shamir's Secret Sharing**
 
-Is there an implementation of Shamir's Secret Sharing that can be regarded as "canonical" or "reference" or "standard" implementation, so that I can test other implementations to be "standard compliant"?
+Is there an implementation of [Shamir's Secret Sharing](https://en.wikipedia.org/wiki/Shamir%27s_secret_sharing) that can be regarded as "canonical" (or "reference" or "standard") implementation, so that I can test other implementations to be "standard compliant"?
 
 The above question is pretty vague. I have more details in mind, but some of them might be misleading or base on false assumptions. So possibly not all of them can be fulfilled or are relevant.
 
@@ -19,7 +21,7 @@ The above question is pretty vague. I have more details in mind, but some of the
   * When a field other than GF(256) is used for sharing, there is no guarantee that the secret can be reconstructed using GF(256).
   * Requiring the use of GF(256) is enough to ensure that each correct split implementation will be compatible with each other correct join implementation. If this assumption is not complete - what is missing for a full specification of the method?
 
-The motivation for this question is that I noticed that when I share a secret with implementation A, it is not sure I can reconstruct the secret with implementation B.
+The motivation for this question is: I noticed that when I share a secret with implementation A, it is not sure I can reconstruct the secret with implementation B.
 
 For example, "hello" shared with the implementation https://github.com/codahale/shamir has given me the shares
 
@@ -29,7 +31,29 @@ For example, "hello" shared with the implementation https://github.com/codahale/
     4-a8a0cc833b
     5-c8d84a8f1d
 
-Reconstructing the secret from shares 5, 2, 3 using https://github.com/codahale/shamir works fine. But reconstructing the secret from the same shares using the debian package "ssss" (http://point-at-infinity.org/ssss/, version v0.5, January 2006) gives me the byte array 056bcedfa2 (where I would have expected the bytes of "hello", i.e. 68656c6c6f).
+    // Implemented like:
+    Scheme scheme = new Scheme(new SecureRandom(), 5, 3);
+    Map<Integer, byte[]> split = scheme.split("hello".getBytes("UTF-8"));
+
+Reconstructing the secret from shares 5, 2, 3 using https://github.com/codahale/shamir works fine, like this:
+
+    Scheme scheme = new Scheme(new SecureRandom(), 5, 3);
+    Map<Integer, byte[]> example = Map.of(
+            5, java.util.HexFormat.of().parseHex("c8d84a8f1d"),
+            2, java.util.HexFormat.of().parseHex("c869462a01"),
+            3, java.util.HexFormat.of().parseHex("a811c02627")
+    );
+    byte[] exampleJoined = scheme.join(example);
+
+
+But reconstructing the secret from the same shares using the debian package "ssss" (http://point-at-infinity.org/ssss/, version v0.5, January 2006) gives me the byte array 056bcedfa2 (where I would have expected the bytes of "hello", i.e. 68656c6c6f):
+
+    > ssss-combine -t 3 -x -D
+    Enter 3 shares separated by newlines:
+    Share [1/3]: 5-c8d84a8f1d
+    Share [2/3]: 2-c869462a01
+    Share [3/3]: 3-a811c02627
+    Resulting secret: 056bcedfa2
 
 ### Make Shamir's Secret Sharing Verifiable By Publishing One Share?
 
