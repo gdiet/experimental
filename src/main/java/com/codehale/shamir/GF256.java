@@ -26,7 +26,7 @@ import java.security.SecureRandom;
  * @see <a href="https://research.swtch.com/field">Finite Field Arithmetic and Reed-Solomon
  *     Coding</a>
  */
-public class GF256 {
+class GF256 {
     private GF256() {
         // a singleton
     }
@@ -166,7 +166,7 @@ public class GF256 {
         return mul(a, EXP[255 - toUnsignedInt(LOG[toUnsignedInt(b)])]);
     }
 
-    public static byte eval(byte[] p, byte x) {
+    static byte eval(byte[] p, byte x) {
         // Horner's method
         byte result = 0;
         for (int i = p.length - 1; i >= 0; i--) {
@@ -175,11 +175,26 @@ public class GF256 {
         return result;
     }
 
-    public static byte[] generate(SecureRandom random, int degree, byte x) {
+    static int degree(byte[] p) {
+        for (int i = p.length - 1; i >= 1; i--) {
+            if (p[i] != 0) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    static byte[] generate(SecureRandom random, int degree, byte x) {
         final byte[] p = new byte[degree + 1];
-        random.nextBytes(p); // First & last random bytes are not used but it's easier to generate them anyway.
-        p[degree] = (byte) random.nextInt(1, 256);
+
+        // generate random polynomials until we find one of the given degree
+        do {
+            random.nextBytes(p);
+        } while (degree(p) != degree);
+
+        // set y intercept
         p[0] = x;
+
         return p;
     }
 

@@ -15,7 +15,7 @@ import scala.util.chaining.scalaUtilChainingOps
 //  sys.exit(0)
 
   val random = SecureRandom()
-  val scheme = com.codahale.shamir.Scheme(random, 15, 5)
+  val scheme = com.codahale.shamirMod.Scheme(random, 15, 5)
   for (n <- 0 to 100) {
     print(s"$n ")
     val secret = new Array[Byte](16).tap(random.nextBytes)

@@ -77,6 +77,10 @@ https://github.com/osresearch/ssss/blob/master/ssss.c#L439-L444
 
 This is feature is only active when n >= 8 bytes are shared.
 
+# Codahale's Java implemention
+
+* https://github.com/codahale/shamir
+
 ## Additional Implementations Out There
 
 * https://github.com/grempe/secrets.js
@@ -94,4 +98,3 @@ This is feature is only active when n >= 8 bytes are shared.
   * Shares are base-64
   * Share number is not visible
   * "hello" results in a 12-byte share
-* 
