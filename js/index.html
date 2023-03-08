@@ -11,11 +11,14 @@
   <h1>Shamir's Secret Sharing</h1>
   <h2>Implementierung im "mod 257" Raum</h2>
 
-  <p><label>Zu teilendes Geheimnis: <input id="secretTextInput" type="text" value="Geheimnis"></label></p>
+  <p>Zu teilendes Geheimnis: <input id="secretTextInput" type="text" value="Geheimnis"></p>
   <p><button id="secretTextToHexButton">UTF-8 hexadezimal umrechnen</button></p>
-  <p><label>Geheimnis hexadezimal: <input id="secretHexInput" type="text" value=""></label></p>
-  <p><button id="randomHexSequenceButton">Gleich lange Zufalls-Sequenz erstellen</button></p>
-  <p><label>Gleich lange Zufalls-Sequenz: <input id="randomHexInput" type="text" value=""></label></p>
+  <p>Geheimnis hexadezimal: <input id="secretHexInput" type="text" value=""></p>
+  <p><input type="radio" id="randomCoefficients" name="coefficients" checked> Zufällige Koeffizienten</p>
+  <p><input type="radio" id="staticCoefficients" name="coefficients"> Feste Koeffizienten (Hex-Bytes):
+     <input id="userCoefficients" type="text" value="0011aaff"></p>
+  <!-- <p><button id="randomHexSequenceButton">Gleich lange Zufalls-Sequenz erstellen</button></p>
+  <p><label>Gleich lange Zufalls-Sequenz: <input id="randomHexInput" type="text" value=""></label></p> -->
 
 </body>
 
@@ -57,9 +60,9 @@ onClick('secretTextToHexButton', () => {
   byId('secretHexInput').value = toHexCompact(utf8ToBytes(byId('secretTextInput').value))
 } )
 
-onClick('randomHexSequenceButton', () => {
-  byId('randomHexInput').value = toHexCompact(randomBytes(byId('secretHexInput').value.length / 2))
-} )
+// onClick('randomHexSequenceButton', () => {
+//   byId('randomHexInput').value = toHexCompact(randomBytes(byId('secretHexInput').value.length / 2))
+// } )
 
 
 
