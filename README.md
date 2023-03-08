@@ -55,7 +55,17 @@ But reconstructing the secret from the same shares using the debian package "sss
     Share [3/3]: 3-a811c02627
     Resulting secret: 056bcedfa2
 
-### Make Shamir's Secret Sharing Verifiable By Publishing One Share?
+### Make Shamir's Secret Sharing Verifiable By Dealing Pairs Of Shares?
+
+Can I make Shamir's Secret Sharing verifiable by dealing double shares
+
+... or by simply collecting one additional share in order to have an overdetermined system of equations`?
+
+Example: I want to share a secret with 4 players A/B/C/D, and any 2 players shall be able to recreate the secret. In the standard approach, if A's share is corrupted (or tampered with, e.g. one bit has been changed), it is still possible to reconstruct **a value** from A's and B's share, and without additional information, there is no way to tell that it's not the original secret.
+
+
+
+
 
 ideally e.g. share 1 - all bytes 0 ?
 
