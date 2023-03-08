@@ -1,66 +1,121 @@
 <!DOCTYPE html>
 <html lang="de">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shamir's Secret Sharing</title>
-  </head>
-  <body>
-  </body>
+  
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shamir's Secret Sharing</title>
+</head>
+
+<body>
+  <h1>Shamir's Secret Sharing</h1>
+  <h2>Implementierung im "mod 257" Raum</h2>
+
+  <p><label>Zu teilendes Geheimnis: <input id="secretTextInput" type="text" value="Geheimnis"></label></p>
+  <p><button id="secretTextToHexButton">UTF-8 hexadezimal umrechnen</button></p>
+  <p><label>Geheimnis hexadezimal: <input id="secretHexInput" type="text" value=""></label></p>
+  <p><button id="randomHexSequenceButton">Gleich lange Zufalls-Sequenz erstellen</button></p>
+  <p><label>Gleich lange Zufalls-Sequenz: <input id="randomHexInput" type="text" value=""></label></p>
+
+</body>
 
 <script>
 
-// number 0 .. 255 => hex string 00 .. FF
-const hex   = byte  => byte.toString(16).padStart(2, '0')
-const hexes = array => array.map(byte => hex(byte)).join(" ")
+// Text utility functions
+const utf8ToBytes  = text  => Array.from(new TextEncoder('UTF-8').encode(text))
+const toHex        = byte  => byte.toString(16).padStart(2, '0')
+const toHexSpaced  = array => array.map(byte => toHex(byte)).join(" ")
+const toHexCompact = array => array.map(byte => toHex(byte)).join("")
 
-// log and antilog table for GF(256) with generator 3
-const calculate_exp = () => {
-    a = 0xf6
-    return Array.from({length: 510}, () => { a = (a < 128) ? (a << 1 ^ a) : (a << 1 ^ a ^ 0x11b); return a })
+// min, max: The minimum is inclusive and the maximum is exclusive
+const random       = (min, max) => Math.floor(Math.random() * (max - min) + min)
+const randomByte   = ()         => random(0, 256)
+const randomBytes  = count      => Array.from({length: count}, () => randomByte() )
+
+// Document utilitiy functions
+const byId         = id           => document.getElementById(id)
+const onClick      = (id, action) => byId(id).addEventListener('click', action)
+
+// Helper functions for improved readability
+const foldLeft     = (array, zero, func) => array.reduce(func, zero)
+
+// Maths for secret sharing
+const mod     = (a, n) => ((a % n) + n) % n
+const inverse = (a, n) => {
+    for (k = 1; k < n; k++) if (mod(k * a, n) == 1) return k
+    throw new Error(`${a} is not invertible mod ${n}`) 
 }
-const EXP = calculate_exp()
-const LOG = Array.from({length: 256}, (_, i) => i == 0 ? 255 : EXP.indexOf(i))
-
-// The maximum is exclusive and the minimum is inclusive
-const random = (min, max) => Math.floor(Math.random() * (max - min) + min)
-
-const add = (a, b) => a ^ b
-const mul = (a, b) => a == 0 || b == 0 ? 0 : EXP[LOG[a] + LOG[b]]
-
-const eval     = (arr, x) => arr.reduceRight((result, b) => add(mul(result, x), b), 0)
-const generate = (rnd, degree, x) => [x].concat(Array.from({length: degree - 1}, () => rnd(0, 256))).concat([rnd(1, 256)])
-
-console.log("EXP")
-console.log(hexes(EXP))
-console.log("")
-
-console.log("LOG")
-console.log(hexes(LOG))
-console.log("")
-
-console.log("eval")
-console.log(hex(eval([20, 20],2)))
-console.log("")
-
-console.log("generate")
-console.log(hexes(generate(random, 10, 2)))
-console.log("")
+const interpolate = (data, x, n) => 
+    foldLeft(data, 0, (r, e1, i) =>
+        mod(foldLeft(data, e1.y, (t, e2, j) =>
+            i == j ? t : mod(t * (x - e2.x) * inverse(e1.x - e2.x, n), n)
+        ) + r, 257)
+    )
 
 
-/*
-def split(random: RandomInt, secret: Array[Int], shares: Int, threshold: Int): Seq[Array[Int]] =
-  require((shares < 256) && (shares > 0) && (threshold <= shares) && (threshold > 0)) // FIXME threshold 1 ???
-  val polynomials = secret.map { b => generate(random, threshold - 1, b) }
-  (1 to shares).map { share => polynomials.map { polynomial => eval(polynomial, share) } }
+onClick('secretTextToHexButton', () => {
+  byId('secretHexInput').value = toHexCompact(utf8ToBytes(byId('secretTextInput').value))
+} )
 
-def generate(random: RandomInt, degree: Int, x: Int): Array[Int] =
-  x +: Array.fill(degree - 1)(random(0, 256)) :+ random(1, 256)
+onClick('randomHexSequenceButton', () => {
+  byId('randomHexInput').value = toHexCompact(randomBytes(byId('secretHexInput').value.length / 2))
+} )
 
-def eval(a: Array[Int], x: Int) = a.foldRight(0) { case (b, result) => result #* x #+ b }
-*/
 
+
+
+
+// // number 0 .. 255 => hex string 00 .. FF
+// const hex   = byte  => byte.toString(16).padStart(2, '0')
+// const hexes = array => array.map(byte => hex(byte)).join(" ")
+
+// // log and antilog table for GF(256) with generator 3
+// const calculate_exp = () => {
+//     a = 0xf6
+//     return Array.from({length: 510}, () => { a = (a < 128) ? (a << 1 ^ a) : (a << 1 ^ a ^ 0x11b); return a })
+// }
+// const EXP = calculate_exp()
+// const LOG = Array.from({length: 256}, (_, i) => i == 0 ? 255 : EXP.indexOf(i))
+
+// // The maximum is exclusive and the minimum is inclusive
+// const random = (min, max) => Math.floor(Math.random() * (max - min) + min)
+
+// const add = (a, b) => a ^ b
+// const mul = (a, b) => a == 0 || b == 0 ? 0 : EXP[LOG[a] + LOG[b]]
+
+// const eval     = (arr, x) => arr.reduceRight((result, b) => add(mul(result, x), b), 0)
+// const generate = (rnd, degree, x) => [x].concat(Array.from({length: degree - 1}, () => rnd(0, 256))).concat([rnd(1, 256)])
+
+// console.log("EXP")
+// console.log(hexes(EXP))
+// console.log("")
+
+// console.log("LOG")
+// console.log(hexes(LOG))
+// console.log("")
+
+// console.log("eval")
+// console.log(hex(eval([20, 20],2)))
+// console.log("")
+
+// console.log("generate")
+// console.log(hexes(generate(random, 10, 2)))
+// console.log("")
+
+
+// /*
+// def split(random: RandomInt, secret: Array[Int], shares: Int, threshold: Int): Seq[Array[Int]] =
+//   require((shares < 256) && (shares > 0) && (threshold <= shares) && (threshold > 0)) // FIXME threshold 1 ???
+//   val polynomials = secret.map { b => generate(random, threshold - 1, b) }
+//   (1 to shares).map { share => polynomials.map { polynomial => eval(polynomial, share) } }
+
+// def generate(random: RandomInt, degree: Int, x: Int): Array[Int] =
+//   x +: Array.fill(degree - 1)(random(0, 256)) :+ random(1, 256)
+
+// def eval(a: Array[Int], x: Int) = a.foldRight(0) { case (b, result) => result #* x #+ b }
+// */
 
 </script>
-    
+  
+
 </html>
