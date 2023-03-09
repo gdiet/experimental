@@ -14,11 +14,14 @@
   <p>Zu teilendes Geheimnis: <input id="secretTextInput" type="text" value="Geheimnis"></p>
   <p><button id="secretTextToHexButton">UTF-8 hexadezimal umrechnen</button></p>
   <p>Geheimnis hexadezimal: <input id="secretHexInput" type="text" value=""></p>
-  <p><input type="radio" id="randomCoefficients" name="coefficients" checked> Zufällige Koeffizienten</p>
-  <p><input type="radio" id="staticCoefficients" name="coefficients"> Feste Koeffizienten:
-     <input id="userCoefficients" type="text" value="1,5,3"></p>
-  <p>Anzahl zu erstellender Teile: <input id="numberOfShares" type="number" min="2" max="256" step="1" value="5"></p>
-  <p>Anzahl benötigte Teile: <input id="threshold" type="number" min="2" max="256" step="1" value="3"></p>
+  <p><input type="radio" id="randomCoefficients" name="coefficients" checked>
+    Zufällige Koeffizienten: <span id="generatedCoefficients"></span></p>
+  <p><input type="radio" id="staticCoefficients" name="coefficients">
+    Feste Koeffizienten: <input id="userCoefficients" type="text" value="1,5,3"></p>
+  <p>Zu erstellende Teile n, mit k <= n <= 256:
+    <input id="numberOfShares" type="number" min="2" max="256" value="5"></p>
+  <p>Benötigte Teile für Rekonstruktion k, mit 2 <= k:
+    <input id="threshold" type="number" min="2" max="256" value="3"></p>
   <p>Polynom: <span id="polynomial"></span></p>
 </body>
 
@@ -57,15 +60,18 @@ const interpolate = (data, x, n) =>
 
 // Dynamic document content functions
 const coefficientHtml = index => {
-  if (! byId('staticCoefficients').checked) return `c<sub>${index}</sub>`
-  else return Number(byId('userCoefficients').value.split(',')[index-1]) || 1
+  coefficientsText = byId('staticCoefficients').checked ? byId('userCoefficients').value : byId('generatedCoefficients').innerHTML
+  return Number(coefficientsText.split(',')[index-1]) || 1
 }
-const setPolynomialHtml = () => {
+const setPolynomialAndGeneratedCoefficientsHtml = () => {
   threshold = byId('threshold').value
-  for (k = 1, html = `P(x) = s`; k < threshold; k++) html += ` + ${coefficientHtml(k)}x<sup>${k}</sup>`
+  coefficients = Array.from({length: threshold - 2}, () => random(0, 257))
+  coefficients.push(random(1, 257)) // The last coefficient must not be 0.
+  byId('generatedCoefficients').innerHTML = coefficients.join(',')
+  for (k = 1, html = `P(x) = secret`; k < threshold; k++) html += ` + ${coefficientHtml(k)}x<sup>${k}</sup>`
   byId('polynomial').innerHTML = html + ' | (mod 257)'
 }
-setPolynomialHtml()
+setPolynomialAndGeneratedCoefficientsHtml()
 const setHexSecretHtml = () =>
   byId('secretHexInput').value = toHexCompact(utf8ToBytes(byId('secretTextInput').value))
 setHexSecretHtml()
@@ -75,17 +81,38 @@ listen('secretTextToHexButton', 'click', () => {
   setHexSecretHtml()
 } )
 
-listen('randomCoefficients', 'change', () => setPolynomialHtml())
-listen('staticCoefficients', 'change', () => setPolynomialHtml())
+listen('randomCoefficients', 'change', () => setPolynomialAndGeneratedCoefficientsHtml())
+listen('staticCoefficients', 'change', () => setPolynomialAndGeneratedCoefficientsHtml())
 
+listen('numberOfShares', 'change', () => {
+  numberOfSharesRead = Math.floor(Math.abs(Number(byId('numberOfShares').value)))
+  byId('numberOfShares').value = Math.min(256, Math.max(byId('threshold').value, numberOfSharesRead))
+})
 listen('threshold', 'change', () => {
-  byId('threshold').value = Math.floor(Math.abs(Number(byId('threshold').value)))
-  setPolynomialHtml()
+  thresholdRead = Math.floor(Math.abs(Number(byId('threshold').value)))
+  byId('threshold').value = Math.min(byId('numberOfShares').value, Math.max(2, thresholdRead))
+  setPolynomialAndGeneratedCoefficientsHtml()
 })
 
 
+// https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/generateKey
+// for the signature - consider using a ecc key pair instead of rsa
 
-
+/*
+  <p><pre>
+    {
+      "whatIsThis": "A share of a secret, created with Shamir's Secret Sharing",
+      "share": {
+        "whatIsShared": "The combination of Tia Tester's Bank Safe",
+        "x":1, "y":27,
+        "polynomial": "P(x) = secret + ax^1 + bx^2 + cx^3 | (mod 257)"
+      },
+      "rsaPublicKey": "aabbcc",
+      "whatIsSigned": "JSON.stringify(share).toUTF8ByteArray",
+      "rsaSignature": "ddeeff"
+    }
+  </pre></p>
+*/
 
 
 // // number 0 .. 255 => hex string 00 .. FF
