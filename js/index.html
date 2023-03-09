@@ -15,8 +15,8 @@
   <p><button id="secretTextToHexButton">UTF-8 hexadezimal umrechnen</button></p>
   <p>Geheimnis hexadezimal: <input id="secretHexInput" type="text" value=""></p>
   <p><input type="radio" id="randomCoefficients" name="coefficients" checked> Zufällige Koeffizienten</p>
-  <p><input type="radio" id="staticCoefficients" name="coefficients"> Feste Koeffizienten (Hex-Bytes):
-     <input id="userCoefficients" type="text" value="0011aaff"></p>
+  <p><input type="radio" id="staticCoefficients" name="coefficients"> Feste Koeffizienten:
+     <input id="userCoefficients" type="text" value="1,5,3"></p>
   <p>Anzahl zu erstellender Teile: <input id="numberOfShares" type="number" min="2" max="256" step="1" value="5"></p>
   <p>Anzahl benötigte Teile: <input id="threshold" type="number" min="2" max="256" step="1" value="3"></p>
   <p>Polynom: <span id="polynomial"></span></p>
@@ -56,16 +56,27 @@ const interpolate = (data, x, n) =>
     )
 
 // Dynamic document content functions
-const setPolynomialHtml = () => { 
+const coefficientHtml = index => {
+  if (! byId('staticCoefficients').checked) return `c<sub>${index}</sub>`
+  else return Number(byId('userCoefficients').value.split(',')[index-1]) || 1
+}
+const setPolynomialHtml = () => {
   threshold = byId('threshold').value
-  for (k = 1, html = `P(x) = s`; k < threshold; k++) html += ` + c<sub>${k}</sub>x<sup>${k}</sup>`
+  for (k = 1, html = `P(x) = s`; k < threshold; k++) html += ` + ${coefficientHtml(k)}x<sup>${k}</sup>`
   byId('polynomial').innerHTML = html + ' | (mod 257)'
 }
 setPolynomialHtml()
-
-listen('secretTextToHexButton', 'click', () => {
+const setHexSecretHtml = () =>
   byId('secretHexInput').value = toHexCompact(utf8ToBytes(byId('secretTextInput').value))
+setHexSecretHtml()
+
+// Document automation
+listen('secretTextToHexButton', 'click', () => {
+  setHexSecretHtml()
 } )
+
+listen('randomCoefficients', 'change', () => setPolynomialHtml())
+listen('staticCoefficients', 'change', () => setPolynomialHtml())
 
 listen('threshold', 'change', () => {
   byId('threshold').value = Math.floor(Math.abs(Number(byId('threshold').value)))
