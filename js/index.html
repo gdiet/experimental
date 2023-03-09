@@ -17,9 +17,9 @@
   <p><input type="radio" id="randomCoefficients" name="coefficients" checked> Zufällige Koeffizienten</p>
   <p><input type="radio" id="staticCoefficients" name="coefficients"> Feste Koeffizienten (Hex-Bytes):
      <input id="userCoefficients" type="text" value="0011aaff"></p>
-  <!-- <p><button id="randomHexSequenceButton">Gleich lange Zufalls-Sequenz erstellen</button></p>
-  <p><label>Gleich lange Zufalls-Sequenz: <input id="randomHexInput" type="text" value=""></label></p> -->
-
+  <p>Anzahl zu erstellender Teile: <input id="numberOfShares" type="number" min="2" max="256" step="1" value="5"></p>
+  <p>Anzahl benötigte Teile: <input id="threshold" type="number" min="2" max="256" step="1" value="3"></p>
+  <p>Polynom: <span id="polynomial"></span></p>
 </body>
 
 <script>
@@ -36,8 +36,8 @@ const randomByte   = ()         => random(0, 256)
 const randomBytes  = count      => Array.from({length: count}, () => randomByte() )
 
 // Document utilitiy functions
-const byId         = id           => document.getElementById(id)
-const onClick      = (id, action) => byId(id).addEventListener('click', action)
+const byId         = id                  => document.getElementById(id)
+const listen       = (id, event, action) => byId(id).addEventListener(event, action)
 
 // Helper functions for improved readability
 const foldLeft     = (array, zero, func) => array.reduce(func, zero)
@@ -55,14 +55,23 @@ const interpolate = (data, x, n) =>
         ) + r, 257)
     )
 
+// Dynamic document content functions
+const setPolynomialHtml = () => { 
+  threshold = byId('threshold').value
+  for (k = 1, html = `P(x) = s`; k < threshold; k++) html += ` + c<sub>${k}</sub>x<sup>${k}</sup>`
+  byId('polynomial').innerHTML = html + ' | (mod 257)'
+}
+setPolynomialHtml()
 
-onClick('secretTextToHexButton', () => {
+listen('secretTextToHexButton', 'click', () => {
   byId('secretHexInput').value = toHexCompact(utf8ToBytes(byId('secretTextInput').value))
 } )
 
-// onClick('randomHexSequenceButton', () => {
-//   byId('randomHexInput').value = toHexCompact(randomBytes(byId('secretHexInput').value.length / 2))
-// } )
+listen('threshold', 'change', () => {
+  byId('threshold').value = Math.floor(Math.abs(Number(byId('threshold').value)))
+  setPolynomialHtml()
+})
+
 
 
 
