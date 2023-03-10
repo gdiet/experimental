@@ -23,6 +23,7 @@
   <p>Benötigte Teile für Rekonstruktion k, mit 2 <= k:
     <input id="threshold" type="number" min="2" max="256" value="3"></p>
   <p>Polynom: <span id="polynomial"></span></p>
+  <p><button id="createSharesButton">Teile erstellen</button></p>
 </body>
 
 <script>
@@ -45,8 +46,8 @@ const listen       = (id, event, action) => byId(id).addEventListener(event, act
 // Helper functions for improved readability
 const foldLeft     = (array, zero, func) => array.reduce(func, zero)
 
-// Maths for secret sharing
-const mod     = (a, n) => ((a % n) + n) % n
+// Maths for secret sharing and reconstruction
+const mod = (a, n) => ((a % n) + n) % n
 const inverse = (a, n) => {
     for (k = 1; k < n; k++) if (mod(k * a, n) == 1) return k
     throw new Error(`${a} is not invertible mod ${n}`) 
@@ -57,6 +58,13 @@ const interpolate = (data, x, n) =>
             i == j ? t : mod(t * (x - e2.x) * inverse(e1.x - e2.x, n), n)
         ) + r, 257)
     )
+const exp = (a, e, n) => { if (a == 0) return 0
+  factor = e >= 0 ? a : inverse(a, n)
+  for (k = 1, r = 1; k <= Math.abs(e); k++) r = mod(r * factor, n)
+  return r
+}
+const calculatePolynomial = (x, coefficients, n) =>
+  foldLeft(coefficients, 0, (r, c, i) => mod(r + c * exp(x, i, n), n))
 
 // Dynamic document content functions
 const coefficientHtml = index => {
@@ -71,18 +79,16 @@ const setPolynomialAndGeneratedCoefficientsHtml = () => {
   for (k = 1, html = `P(x) = secret`; k < threshold; k++) html += ` + ${coefficientHtml(k)}x<sup>${k}</sup>`
   byId('polynomial').innerHTML = html + ' | (mod 257)'
 }
-setPolynomialAndGeneratedCoefficientsHtml()
 const setHexSecretHtml = () =>
   byId('secretHexInput').value = toHexCompact(utf8ToBytes(byId('secretTextInput').value))
-setHexSecretHtml()
 
 // Document automation
-listen('secretTextToHexButton', 'click', () => {
-  setHexSecretHtml()
-} )
+setHexSecretHtml()
+setPolynomialAndGeneratedCoefficientsHtml()
 
-listen('randomCoefficients', 'change', () => setPolynomialAndGeneratedCoefficientsHtml())
-listen('staticCoefficients', 'change', () => setPolynomialAndGeneratedCoefficientsHtml())
+listen('secretTextToHexButton', 'click',  () => setHexSecretHtml())
+listen('randomCoefficients',    'change', () => setPolynomialAndGeneratedCoefficientsHtml())
+listen('staticCoefficients',    'change', () => setPolynomialAndGeneratedCoefficientsHtml())
 
 listen('numberOfShares', 'change', () => {
   numberOfSharesRead = Math.floor(Math.abs(Number(byId('numberOfShares').value)))
@@ -93,6 +99,14 @@ listen('threshold', 'change', () => {
   byId('threshold').value = Math.min(byId('numberOfShares').value, Math.max(2, thresholdRead))
   setPolynomialAndGeneratedCoefficientsHtml()
 })
+
+// to create a share for x,
+// the first coefficient must be the secret,
+// the middle coefficients should be random numbers,
+// the last coefficient modulus 257 must not be 0.
+// the total number of coefficients (including share)
+// is the number of shares needed for reconstruction.
+console.log(calculatePolynomial(2, [4,6,3], 257))
 
 
 // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/generateKey
@@ -113,57 +127,6 @@ listen('threshold', 'change', () => {
     }
   </pre></p>
 */
-
-
-// // number 0 .. 255 => hex string 00 .. FF
-// const hex   = byte  => byte.toString(16).padStart(2, '0')
-// const hexes = array => array.map(byte => hex(byte)).join(" ")
-
-// // log and antilog table for GF(256) with generator 3
-// const calculate_exp = () => {
-//     a = 0xf6
-//     return Array.from({length: 510}, () => { a = (a < 128) ? (a << 1 ^ a) : (a << 1 ^ a ^ 0x11b); return a })
-// }
-// const EXP = calculate_exp()
-// const LOG = Array.from({length: 256}, (_, i) => i == 0 ? 255 : EXP.indexOf(i))
-
-// // The maximum is exclusive and the minimum is inclusive
-// const random = (min, max) => Math.floor(Math.random() * (max - min) + min)
-
-// const add = (a, b) => a ^ b
-// const mul = (a, b) => a == 0 || b == 0 ? 0 : EXP[LOG[a] + LOG[b]]
-
-// const eval     = (arr, x) => arr.reduceRight((result, b) => add(mul(result, x), b), 0)
-// const generate = (rnd, degree, x) => [x].concat(Array.from({length: degree - 1}, () => rnd(0, 256))).concat([rnd(1, 256)])
-
-// console.log("EXP")
-// console.log(hexes(EXP))
-// console.log("")
-
-// console.log("LOG")
-// console.log(hexes(LOG))
-// console.log("")
-
-// console.log("eval")
-// console.log(hex(eval([20, 20],2)))
-// console.log("")
-
-// console.log("generate")
-// console.log(hexes(generate(random, 10, 2)))
-// console.log("")
-
-
-// /*
-// def split(random: RandomInt, secret: Array[Int], shares: Int, threshold: Int): Seq[Array[Int]] =
-//   require((shares < 256) && (shares > 0) && (threshold <= shares) && (threshold > 0)) // FIXME threshold 1 ???
-//   val polynomials = secret.map { b => generate(random, threshold - 1, b) }
-//   (1 to shares).map { share => polynomials.map { polynomial => eval(polynomial, share) } }
-
-// def generate(random: RandomInt, degree: Int, x: Int): Array[Int] =
-//   x +: Array.fill(degree - 1)(random(0, 256)) :+ random(1, 256)
-
-// def eval(a: Array[Int], x: Int) = a.foldRight(0) { case (b, result) => result #* x #+ b }
-// */
 
 </script>
   
