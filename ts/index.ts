@@ -1,30 +1,53 @@
 // document utilitiy functions
-let input = (id: string) => document.getElementById(id) as HTMLInputElement
+let input  = (id: string) => document.getElementById(id) as HTMLInputElement
 let button = (id: string) => document.getElementById(id) as HTMLButtonElement
+let span   = (id: string) => document.getElementById(id) as HTMLSpanElement
 
 // text utility functions
 let fromUTF8 = (text: string) => Array.from(new TextEncoder().encode(text))
+
+// min, max: The minimum is inclusive and the maximum is exclusive
+let random = (min: number, max: number) => Math.floor(Math.random() * (max - min) + min)
 
 // document access
 let doc = {
   get secretText() { return input('secretTextInput').value },
   get secretNumbers() { return input('secretNumbersInput').value },
-  set secretNumbers(s: string) { input('secretNumbersInput').value = s }
+  set secretNumbers(s: string) { input('secretNumbersInput').value = s },
+  get generatedCoefficients() { return span('generatedCoefficients').innerText },
+  set generatedCoefficients(s: string) { span('generatedCoefficients').innerText = s },
+  get threshold() { return input('threshold').value },
+  set threshold(s: string) { input('threshold').value = s },
+  get numberOfShares() { return input('numberOfShares').value },
+  set numberOfShares(s: string) { input('numberOfShares').value = s },
 }
 
 // typed document content
 let cont = {
-  get secretNumbers() { return doc.secretNumbers.split(',').map(n => parseInt(n) || 0) }
+  get secretNumbers() { return doc.secretNumbers.split(',').map(n => parseInt(n) || 0) },
+  get generatedCoefficients() { return doc.generatedCoefficients.split(',').map(n => parseInt(n)) },
+  set generatedCoefficients(coefficients: number[]) { doc.generatedCoefficients = coefficients.join(',') },
+  get threshold() { return parseInt(doc.threshold) },
+  get numberOfShares() { return parseInt(doc.numberOfShares) },
 }
 
 // document automation
 let aut = {
-  fillSecretNumbersFromText: () => doc.secretNumbers = fromUTF8(doc.secretText).join(','),
-  fixSecretNumbers: () => doc.secretNumbers = cont.secretNumbers.map(n => Math.max(0,n)).map(n => Math.min(257,n)).join(',')
+  fillSecretNumbersFromText: () => 
+    doc.secretNumbers = fromUTF8(doc.secretText).join(','),
+  fixSecretNumbers: () => 
+    doc.secretNumbers = cont.secretNumbers.map(n => Math.max(0,n)).map(n => Math.min(257,n)).join(','),
+  generateCoefficients: () => // The last coefficient must not be 0.
+    cont.generatedCoefficients = Array.from({length: cont.threshold - 2}, () => random(0, 257)).concat([random(1, 257)])
 }
 aut.fillSecretNumbersFromText()
+aut.generateCoefficients()
 button('secretTextToNumbersButton').addEventListener('click', aut.fillSecretNumbersFromText)
 input('secretNumbersInput').addEventListener('change', aut.fixSecretNumbers)
+button('randomCoefficients').addEventListener('change', aut.generateCoefficients)
+button('staticCoefficients').addEventListener('change', aut.generateCoefficients)
+input('userCoefficients').addEventListener('change', aut.generateCoefficients)
+
 
 
 // // Dynamic document content functions
@@ -39,26 +62,11 @@ input('secretNumbersInput').addEventListener('change', aut.fixSecretNumbers)
 // }
 // const setPolynomialAndGeneratedCoefficientsHtml = () => {
 //   let threshold = byId('threshold').value
-//   let generatedCoefficients = Array.from({length: threshold - 2}, () => random(0, 257))
-//   generatedCoefficients.push(random(1, 257)) // The last coefficient must not be 0.
 //   byId('generatedCoefficients').innerHTML = generatedCoefficients.join(',')
 //   let html = `P(x) = secret`
 //   for (let k = 1; k < threshold; k++) html += ` + ${coefficients()[k-1]}x<sup>${k}</sup>`
 //   byId('polynomial').innerHTML = html + ' | (mod 257)'
 // }
-
-// setPolynomialAndGeneratedCoefficientsHtml()
-
-
-// document initialization
-// const listen = (id, event, action) => byId(id).addEventListener(event, action)
-// writing the document
-
-// const secretTextToNumbersHtml = () =>
-//     byId('secretNumbersInput').value = utf8ToBytes(byId('secretTextInput').value).join(',')
-
-// // Document automation
-// secretTextToNumbersHtml()
 
 
 
@@ -96,9 +104,6 @@ const calculatePolynomial = (x, coefficients, n) =>
 const random = (min, max) => Math.floor(Math.random() * (max - min) + min)
 
 
-listen('randomCoefficients',        'change', () => setPolynomialAndGeneratedCoefficientsHtml())
-listen('staticCoefficients',        'change', () => setPolynomialAndGeneratedCoefficientsHtml())
-listen('userCoefficients',          'change', () => setPolynomialAndGeneratedCoefficientsHtml())
 
 listen('numberOfShares', 'change', () => {
     let numberOfSharesRead = Math.floor(Math.abs(Number(byId('numberOfShares').value)))
