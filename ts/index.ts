@@ -1,32 +1,38 @@
-<!DOCTYPE html>
-<html lang="de">
-  
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shamir's Secret Sharing</title>
-</head>
+// document utilitiy functions
+let input = (id: string) => document.getElementById(id) as HTMLInputElement
+let button = (id: string) => document.getElementById(id) as HTMLButtonElement
 
-<body>
-  <h1>Shamir's Secret Sharing</h1>
-  <h2>Implementierung im "mod 257" Raum</h2>
+// text utility functions
+let fromUTF8 = (text: string) => Array.from(new TextEncoder().encode(text))
 
-  <p>Zu teilendes Geheimnis: <input id="secretTextInput" type="text" value="Geheimnis"></p>
-  <p><button id="secretTextToNumbersButton">Zu Zahlen umwandeln (UTF-8)</button></p>
-  <p>Geheimnis (Zahlen 0-256):<br><input id="secretNumbersInput" type="text" size="50"></p>
-  <p><input type="radio" id="randomCoefficients" name="coefficients" checked>
-    Zufällige Koeffizienten: <span id="generatedCoefficients"></span></p>
-  <p><input type="radio" id="staticCoefficients" name="coefficients">
-    Feste Koeffizienten: <input id="userCoefficients" type="text" value="1,5,3"></p>
-  <p>Zu erstellende Teile n, mit k <= n <= 256:
-    <input id="numberOfShares" type="number" min="2" max="256" value="5"></p>
-  <p>Benötigte Teile für Rekonstruktion k, mit 2 <= k <=n:
-    <input id="threshold" type="number" min="2" max="256" value="3"></p>
-  <p>Polynom: <span id="polynomial"></span></p>
-  <p><button id="createSharesButton">Teile erstellen</button></p>
-</body>
+// document access
+class doc {
+  static get secretText() { return input('secretTextInput').value }
+  static set secretNumbers(s: string) { input('secretNumbersInput').value = s }
+}
 
-<script>
+// document automation
+class aut {
+  static fillSecretNumbersFromText = () => doc.secretNumbers = fromUTF8(doc.secretText).join(',')
+}
+aut.fillSecretNumbersFromText()
+button('secretTextToNumbersButton').addEventListener('click', aut.fillSecretNumbersFromText)
+
+
+// document initialization
+// const listen = (id, event, action) => byId(id).addEventListener(event, action)
+// writing the document
+
+// const secretTextToNumbersHtml = () =>
+//     byId('secretNumbersInput').value = utf8ToBytes(byId('secretTextInput').value).join(',')
+
+// // Document automation
+// secretTextToNumbersHtml()
+
+
+
+
+/*
 
 // Helper functions for improved readability
 const foldLeft = (array, zero, func) => array.reduce(func, zero)
@@ -58,13 +64,6 @@ const calculatePolynomial = (x, coefficients, n) =>
 // min, max: The minimum is inclusive and the maximum is exclusive
 const random = (min, max) => Math.floor(Math.random() * (max - min) + min)
 
-// Text utility functions
-const utf8ToBytes = text => Array.from(new TextEncoder('UTF-8').encode(text))
-
-// Document utilitiy functions
-const byId   = id                  => document.getElementById(id)
-const listen = (id, event, action) => byId(id).addEventListener(event, action)
-
 // Dynamic document content functions
 const coefficients = () => {
     let coefficientsText = byId('staticCoefficients').checked ? byId('userCoefficients').value : byId('generatedCoefficients').innerHTML
@@ -84,14 +83,9 @@ const setPolynomialAndGeneratedCoefficientsHtml = () => {
     for (let k = 1; k < threshold; k++) html += ` + ${coefficients()[k-1]}x<sup>${k}</sup>`
     byId('polynomial').innerHTML = html + ' | (mod 257)'
 }
-const secretTextToNumbersHtml = () =>
-    byId('secretNumbersInput').value = utf8ToBytes(byId('secretTextInput').value).join(',')
 
-// Document automation
-secretTextToNumbersHtml()
 setPolynomialAndGeneratedCoefficientsHtml()
 
-listen('secretTextToNumbersButton', 'click',  () => secretTextToNumbersHtml())
 listen('randomCoefficients',        'change', () => setPolynomialAndGeneratedCoefficientsHtml())
 listen('staticCoefficients',        'change', () => setPolynomialAndGeneratedCoefficientsHtml())
 listen('userCoefficients',          'change', () => setPolynomialAndGeneratedCoefficientsHtml())
@@ -137,23 +131,4 @@ listen('createSharesButton', 'click',  () => {
 // const randomByte   = ()         => random(0, 256)
 // const randomBytes  = count      => Array.from({length: count}, () => randomByte() )
 
-/*
-  <p><pre>
-    {
-      "whatIsThis": "A share of a secret, created with Shamir's Secret Sharing",
-      "share": {
-        "whatIsShared": "The combination of Tia Tester's Bank Safe",
-        "x":1, "y":27,
-        "polynomial": "P(x) = secret + ax^1 + bx^2 + cx^3 | (mod 257)"
-      },
-      "rsaPublicKey": "aabbcc",
-      "whatIsSigned": "JSON.stringify(share).toUTF8ByteArray",
-      "rsaSignature": "ddeeff"
-    }
-  </pre></p>
 */
-
-</script>
-  
-
-</html>
