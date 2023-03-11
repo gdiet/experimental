@@ -15,14 +15,14 @@
   <p><button id="secretTextToNumbersButton">Zu Zahlen umwandeln (UTF-8)</button></p>
   <p>Zu teilendes Geheimnis (Zahlen 0-256):<br><input id="secretNumbersInput" type="text" size="50"></p>
   <p>Zu erstellende Teile n, mit k <= n <= 256:
-    <input id="numberOfShares" type="number" min="2" max="256" value="5"></p>
+    <input id="numberOfSharesInput" type="number" min="2" max="256" value="5"></p>
   <p>Benötigte Teile für Rekonstruktion k, mit 2 <= k <=n:
-    <input id="threshold" type="number" min="2" max="256" value="3"></p>
-  <p><input type="radio" id="randomCoefficients" name="coefficients" checked>
-    Zufällige Koeffizienten: <span id="generatedCoefficients"></span></p>
-  <p><input type="radio" id="staticCoefficients" name="coefficients">
-    Feste Koeffizienten: <input id="userCoefficients" type="text" value="1,5,3"></p>
-  <p>Polynom: <span id="polynomial"></span></p>
+    <input id="thresholdInput" type="number" min="2" max="256" value="3"></p>
+  <p><input type="radio" id="randomCoefficientsRadio" name="coefficients" checked>
+    Zufällige Koeffizienten: <span id="generatedCoefficientsSpan"></span></p>
+  <p><input type="radio" id="staticCoefficientsRadio" name="coefficients">
+    Feste Koeffizienten: <input id="userCoefficientsInput" type="text" value="1,5,3"></p>
+  <p>Polynom: <span id="polynomialSpan"></span></p>
   <p><button id="createSharesButton">Teile erstellen</button></p>
 </body>
 

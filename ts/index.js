@@ -7,30 +7,36 @@ let span = (id) => document.getElementById(id);
 let fromUTF8 = (text) => Array.from(new TextEncoder().encode(text));
 // min, max: The minimum is inclusive and the maximum is exclusive
 let random = (min, max) => Math.floor(Math.random() * (max - min) + min);
+let limit = (n, min, max) => Math.min(max, Math.max(min, n));
 // document access
 let doc = {
     get secretText() { return input('secretTextInput').value; },
     get secretNumbers() { return input('secretNumbersInput').value; },
     set secretNumbers(s) { input('secretNumbersInput').value = s; },
-    get generatedCoefficients() { return span('generatedCoefficients').innerText; },
-    set generatedCoefficients(s) { span('generatedCoefficients').innerText = s; },
-    get threshold() { return input('threshold').value; },
-    set threshold(s) { input('threshold').value = s; },
-    get numberOfShares() { return input('numberOfShares').value; },
-    set numberOfShares(s) { input('numberOfShares').value = s; },
+    get generatedCoefficients() { return span('generatedCoefficientsSpan').innerText; },
+    set generatedCoefficients(s) { span('generatedCoefficientsSpan').innerText = s; },
+    get numberOfShares() { return input('numberOfSharesInput').value; },
+    set numberOfShares(s) { input('numberOfSharesInput').value = s; },
+    get threshold() { return input('thresholdInput').value; },
+    set threshold(s) { input('thresholdInput').value = s; },
 };
 // typed document content
 let cont = {
     get secretNumbers() { return doc.secretNumbers.split(',').map(n => parseInt(n) || 0); },
+    set secretNumbers(numbers) { doc.secretNumbers = numbers.join(','); },
     get generatedCoefficients() { return doc.generatedCoefficients.split(',').map(n => parseInt(n)); },
     set generatedCoefficients(coefficients) { doc.generatedCoefficients = coefficients.join(','); },
-    get threshold() { return parseInt(doc.threshold); },
     get numberOfShares() { return parseInt(doc.numberOfShares); },
+    set numberOfShares(shares) { doc.numberOfShares = String(shares); },
+    get threshold() { return parseInt(doc.threshold); },
+    set threshold(threshold) { doc.threshold = String(threshold); },
 };
 // document automation
 let aut = {
-    fillSecretNumbersFromText: () => doc.secretNumbers = fromUTF8(doc.secretText).join(','),
-    fixSecretNumbers: () => doc.secretNumbers = cont.secretNumbers.map(n => Math.max(0, n)).map(n => Math.min(257, n)).join(','),
+    fillSecretNumbersFromText: () => cont.secretNumbers = fromUTF8(doc.secretText),
+    fixSecretNumbers: () => cont.secretNumbers = cont.secretNumbers.map(n => limit(n, 0, 257)),
+    fixNumerOfShares: () => cont.numberOfShares = limit(cont.numberOfShares, cont.threshold, 257),
+    fixThreshold: () => cont.threshold = limit(cont.threshold, 2, cont.numberOfShares),
     generateCoefficients: () => // The last coefficient must not be 0.
      cont.generatedCoefficients = Array.from({ length: cont.threshold - 2 }, () => random(0, 257)).concat([random(1, 257)])
 };
@@ -38,9 +44,11 @@ aut.fillSecretNumbersFromText();
 aut.generateCoefficients();
 button('secretTextToNumbersButton').addEventListener('click', aut.fillSecretNumbersFromText);
 input('secretNumbersInput').addEventListener('change', aut.fixSecretNumbers);
-button('randomCoefficients').addEventListener('change', aut.generateCoefficients);
-button('staticCoefficients').addEventListener('change', aut.generateCoefficients);
-input('userCoefficients').addEventListener('change', aut.generateCoefficients);
+input('numberOfSharesInput').addEventListener('change', aut.fixNumerOfShares);
+input('thresholdInput').addEventListener('change', aut.fixThreshold);
+button('randomCoefficientsRadio').addEventListener('change', aut.generateCoefficients);
+button('staticCoefficientsRadio').addEventListener('change', aut.generateCoefficients);
+input('userCoefficientsInput').addEventListener('change', aut.generateCoefficients);
 // // Dynamic document content functions
 // const coefficients = () => {
 //   let coefficientsText = byId('staticCoefficients').checked ? byId('userCoefficients').value : byId('generatedCoefficients').innerHTML
@@ -134,3 +142,4 @@ listen('createSharesButton', 'click',  () => {
 // const randomBytes  = count      => Array.from({length: count}, () => randomByte() )
 
 */
+//# sourceMappingURL=index.js.map

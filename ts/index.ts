@@ -8,35 +8,43 @@ let fromUTF8 = (text: string) => Array.from(new TextEncoder().encode(text))
 
 // min, max: The minimum is inclusive and the maximum is exclusive
 let random = (min: number, max: number) => Math.floor(Math.random() * (max - min) + min)
+let limit = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n))
 
 // document access
 let doc = {
   get secretText() { return input('secretTextInput').value },
   get secretNumbers() { return input('secretNumbersInput').value },
   set secretNumbers(s: string) { input('secretNumbersInput').value = s },
-  get generatedCoefficients() { return span('generatedCoefficients').innerText },
-  set generatedCoefficients(s: string) { span('generatedCoefficients').innerText = s },
-  get threshold() { return input('threshold').value },
-  set threshold(s: string) { input('threshold').value = s },
-  get numberOfShares() { return input('numberOfShares').value },
-  set numberOfShares(s: string) { input('numberOfShares').value = s },
+  get generatedCoefficients() { return span('generatedCoefficientsSpan').innerText },
+  set generatedCoefficients(s: string) { span('generatedCoefficientsSpan').innerText = s },
+  get numberOfShares() { return input('numberOfSharesInput').value },
+  set numberOfShares(s: string) { input('numberOfSharesInput').value = s },
+  get threshold() { return input('thresholdInput').value },
+  set threshold(s: string) { input('thresholdInput').value = s },
 }
 
 // typed document content
 let cont = {
   get secretNumbers() { return doc.secretNumbers.split(',').map(n => parseInt(n) || 0) },
+  set secretNumbers(numbers: number[]) { doc.secretNumbers = numbers.join(',') },
   get generatedCoefficients() { return doc.generatedCoefficients.split(',').map(n => parseInt(n)) },
   set generatedCoefficients(coefficients: number[]) { doc.generatedCoefficients = coefficients.join(',') },
-  get threshold() { return parseInt(doc.threshold) },
   get numberOfShares() { return parseInt(doc.numberOfShares) },
+  set numberOfShares(shares: number) { doc.numberOfShares = String(shares) },
+  get threshold() { return parseInt(doc.threshold) },
+  set threshold(threshold: number) { doc.threshold = String(threshold) },
 }
 
 // document automation
 let aut = {
   fillSecretNumbersFromText: () => 
-    doc.secretNumbers = fromUTF8(doc.secretText).join(','),
+    cont.secretNumbers = fromUTF8(doc.secretText),
   fixSecretNumbers: () => 
-    doc.secretNumbers = cont.secretNumbers.map(n => Math.max(0,n)).map(n => Math.min(257,n)).join(','),
+    cont.secretNumbers = cont.secretNumbers.map(n => limit(n, 0, 257)),
+  fixNumerOfShares: () =>
+    cont.numberOfShares = limit(cont.numberOfShares, cont.threshold, 257),
+  fixThreshold: () =>
+    cont.threshold = limit(cont.threshold, 2, cont.numberOfShares),
   generateCoefficients: () => // The last coefficient must not be 0.
     cont.generatedCoefficients = Array.from({length: cont.threshold - 2}, () => random(0, 257)).concat([random(1, 257)])
 }
@@ -44,9 +52,11 @@ aut.fillSecretNumbersFromText()
 aut.generateCoefficients()
 button('secretTextToNumbersButton').addEventListener('click', aut.fillSecretNumbersFromText)
 input('secretNumbersInput').addEventListener('change', aut.fixSecretNumbers)
-button('randomCoefficients').addEventListener('change', aut.generateCoefficients)
-button('staticCoefficients').addEventListener('change', aut.generateCoefficients)
-input('userCoefficients').addEventListener('change', aut.generateCoefficients)
+input('numberOfSharesInput').addEventListener('change', aut.fixNumerOfShares)
+input('thresholdInput').addEventListener('change', aut.fixThreshold)
+button('randomCoefficientsRadio').addEventListener('change', aut.generateCoefficients)
+button('staticCoefficientsRadio').addEventListener('change', aut.generateCoefficients)
+input('userCoefficientsInput').addEventListener('change', aut.generateCoefficients)
 
 
 
