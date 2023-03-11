@@ -5,16 +5,43 @@ let button = (id) => document.getElementById(id);
 // text utility functions
 let fromUTF8 = (text) => Array.from(new TextEncoder().encode(text));
 // document access
-class doc {
-    static get secretText() { return input('secretTextInput').value; }
-    static set secretNumbers(s) { input('secretNumbersInput').value = s; }
-}
+let doc = {
+    get secretText() { return input('secretTextInput').value; },
+    get secretNumbers() { return input('secretNumbersInput').value; },
+    set secretNumbers(s) { input('secretNumbersInput').value = s; }
+};
+// typed document content
+let cont = {
+    get secretNumbers() { return doc.secretNumbers.split(',').map(n => parseInt(n) || 0); }
+};
 // document automation
-class aut {
-}
-aut.fillSecretNumbersFromText = () => doc.secretNumbers = fromUTF8(doc.secretText).join(',');
+let aut = {
+    fillSecretNumbersFromText: () => doc.secretNumbers = fromUTF8(doc.secretText).join(','),
+    fixSecretNumbers: () => doc.secretNumbers = cont.secretNumbers.map(n => Math.max(0, n)).map(n => Math.min(257, n)).join(',')
+};
 aut.fillSecretNumbersFromText();
 button('secretTextToNumbersButton').addEventListener('click', aut.fillSecretNumbersFromText);
+input('secretNumbersInput').addEventListener('change', aut.fixSecretNumbers);
+// // Dynamic document content functions
+// const coefficients = () => {
+//   let coefficientsText = byId('staticCoefficients').checked ? byId('userCoefficients').value : byId('generatedCoefficients').innerHTML
+//   let coefficientNumbers = coefficientsText.split(',').map(c => Number(c) || 0)
+//   let numberOfCoefficients = byId('threshold').value - 1
+//   return Array.from({length: numberOfCoefficients}, (_, index) => {
+//       if (coefficientNumbers[index] == 0 && index == numberOfCoefficients - 1) return 1
+//       return coefficientNumbers[index] < 0 ? 0 : coefficientNumbers[index]
+//   })
+// }
+// const setPolynomialAndGeneratedCoefficientsHtml = () => {
+//   let threshold = byId('threshold').value
+//   let generatedCoefficients = Array.from({length: threshold - 2}, () => random(0, 257))
+//   generatedCoefficients.push(random(1, 257)) // The last coefficient must not be 0.
+//   byId('generatedCoefficients').innerHTML = generatedCoefficients.join(',')
+//   let html = `P(x) = secret`
+//   for (let k = 1; k < threshold; k++) html += ` + ${coefficients()[k-1]}x<sup>${k}</sup>`
+//   byId('polynomial').innerHTML = html + ' | (mod 257)'
+// }
+// setPolynomialAndGeneratedCoefficientsHtml()
 // document initialization
 // const listen = (id, event, action) => byId(id).addEventListener(event, action)
 // writing the document
@@ -54,27 +81,6 @@ const calculatePolynomial = (x, coefficients, n) =>
 // min, max: The minimum is inclusive and the maximum is exclusive
 const random = (min, max) => Math.floor(Math.random() * (max - min) + min)
 
-// Dynamic document content functions
-const coefficients = () => {
-    let coefficientsText = byId('staticCoefficients').checked ? byId('userCoefficients').value : byId('generatedCoefficients').innerHTML
-    let coefficientNumbers = coefficientsText.split(',').map(c => Number(c) || 0)
-    let numberOfCoefficients = byId('threshold').value - 1
-    return Array.from({length: numberOfCoefficients}, (_, index) => {
-        if (coefficientNumbers[index] == 0 && index == numberOfCoefficients - 1) return 1
-        return coefficientNumbers[index] < 0 ? 0 : coefficientNumbers[index]
-    })
-}
-const setPolynomialAndGeneratedCoefficientsHtml = () => {
-    let threshold = byId('threshold').value
-    let generatedCoefficients = Array.from({length: threshold - 2}, () => random(0, 257))
-    generatedCoefficients.push(random(1, 257)) // The last coefficient must not be 0.
-    byId('generatedCoefficients').innerHTML = generatedCoefficients.join(',')
-    let html = `P(x) = secret`
-    for (let k = 1; k < threshold; k++) html += ` + ${coefficients()[k-1]}x<sup>${k}</sup>`
-    byId('polynomial').innerHTML = html + ' | (mod 257)'
-}
-
-setPolynomialAndGeneratedCoefficientsHtml()
 
 listen('randomCoefficients',        'change', () => setPolynomialAndGeneratedCoefficientsHtml())
 listen('staticCoefficients',        'change', () => setPolynomialAndGeneratedCoefficientsHtml())
