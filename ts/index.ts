@@ -56,6 +56,7 @@ let doc = {
   set staticCoefficients(s: string) { input('staticCoefficientsInput').value = s },
   get staticCoefficientsSelected() { return radio('staticCoefficientsRadio').checked },
   set polynomial(s: string) { span('polynomialSpan').innerText = s },
+  set sharesHtml(s: string) { span('shares').innerHTML = s },
 }
 
 // typed document content
@@ -93,17 +94,18 @@ let aut = {
     cont.staticCoefficients = cont.staticCoefficients.map(c => limit(c, 0, 257)),
   displayPolynomial: () =>
     span('polynomialSpan').innerHTML =
-      foldLeft(cont.cleanedCoefficients, "P(x) = secret", (c, result, index) => `${result} + ${c}x<sup>${index + 1}</sup>`),
+      foldLeft(cont.cleanedCoefficients, "P(x) = geheimnis", (c, result, index) => `${result} + ${c}x<sup>${index + 1}</sup>`),
 }
 
 const createShares = () => {
   let coefficients = cont.cleanedCoefficients
-  let polynomial = foldLeft(coefficients, "P(x) = secret", (_, result, index) => `${result} + c${index + 1}*x^${index + 1}`)
+  let polynomial = foldLeft(coefficients, "P(x) = geheimnis", (_, result, index) => `${result} + c${index + 1}*x^${index + 1}`)
+  var result = `Verwendete Koeffizienten - nicht teilen: ${coefficients.join(',')}`
   for (let x = 1; x <= cont.numberOfShares; x++) {
     let share = cont.secretNumbers.map(secret => math.calculatePolynomial(x, [secret].concat(coefficients), 257))
-    console.log(polynomial)
-    console.log(`P(${x})=${share.join(',')}`)
+    result += `<br><br>${polynomial}<br>P(${x})=${share.join(',')}`
   }
+  doc.sharesHtml = result
 }
 
 // wire the document functions
