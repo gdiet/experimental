@@ -11,6 +11,7 @@
   <h1>Shamir's Secret Sharing</h1>
   <h2>Implementierung im "mod 257" Raum</h2>
 
+  <h3>Ein Geheimnis aufteilen:</h3>
   <p>Zu teilendes Geheimnis (Text): <input id="secretTextInput" type="text" value="Geheimnis"></p>
   <p><button id="secretTextToNumbersButton">Zu Zahlen umwandeln (UTF-8)</button></p>
   <p>Zu teilendes Geheimnis (Zahlen 0-256 erlaubt):<br><input id="secretNumbersInput" type="text" size="50"></p>
@@ -25,6 +26,17 @@
   <p>Beispiel-Polynom: <span id="polynomialSpan"></span></p>
   <p><button id="createSharesButton">Teile erstellen</button></p>
   <p><span id="shares"></span></p>
+
+  <h3>Teile des Geheimnis zusammenfügen:</h3>
+  <p>Anzahl Teile für Rekonstruktion:
+    <input id="availableSharesInput" type="number" min="2" max="256" value="3"></p>
+  <div id="sharesDiv">
+    <!--
+      <p id="share1Paragraph">Teil 1: <input id="share1Input" type="text" size="45"></p>
+      <p id="share2Paragraph">Teil 2: <input id="share2Input" type="text" size="45"></p>
+    -->
+  </div>
+    
 </body>
 
 <script src="index.js"></script>

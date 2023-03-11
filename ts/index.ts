@@ -23,10 +23,12 @@ let math = {
 }
 
 // document utilitiy functions
-let input  = (id: string) => document.getElementById(id) as HTMLInputElement
-let button = (id: string) => document.getElementById(id) as HTMLButtonElement
-let radio  = (id: string) => document.getElementById(id) as HTMLInputElement
-let span   = (id: string) => document.getElementById(id) as HTMLSpanElement
+let input     = (id: string) => document.getElementById(id) as HTMLInputElement
+let button    = (id: string) => document.getElementById(id) as HTMLButtonElement
+let radio     = (id: string) => document.getElementById(id) as HTMLInputElement
+let span      = (id: string) => document.getElementById(id) as HTMLSpanElement
+let div       = (id: string) => document.getElementById(id) as HTMLDivElement
+let paragraph = (id: string) => document.getElementById(id) as HTMLParagraphElement
 
 // text utility functions
 let fromUTF8 = (text: string) => Array.from(new TextEncoder().encode(text))
@@ -42,6 +44,7 @@ function foldLeft<A, T>(array: A[], zero: T, func: (a: A, t: T, i: number) => T)
 
 // document access
 let doc = {
+  // split secret into shares
   get secretText() { return input('secretTextInput').value },
   get secretNumbers() { return input('secretNumbersInput').value },
   set secretNumbers(s: string) { input('secretNumbersInput').value = s },
@@ -54,10 +57,15 @@ let doc = {
   get staticCoefficientsSelected() { return radio('staticCoefficientsRadio').checked },
   set polynomial(s: string) { span('polynomialSpan').innerText = s },
   set sharesHtml(s: string) { span('shares').innerHTML = s },
+  // recover secret from shares
+  get availableShares() { return input('availableSharesInput').value },
+  set availableShares(s: string) { input('availableSharesInput').value = s },
+  set shareInputs(s: string) { div('sharesDiv').innerHTML = s }
 }
 
 // typed document content
 let cont = {
+  // split secret into shares
   get secretNumbers() { return doc.secretNumbers.split(',').map(n => parseInt(n) || 0) },
   set secretNumbers(numbers: number[]) { doc.secretNumbers = numbers.join(',') },
   get numberOfShares() { return parseInt(doc.numberOfShares) },
@@ -72,10 +80,14 @@ let cont = {
       .map(c => doc.staticCoefficientsSelected ? c : random(0, 257)) // next line: ensure last coefficient is not 0
       .map((c, i) => (c != 0 || i != cont.threshold - 2) ? c : (doc.staticCoefficientsSelected ? 1 : random(1, 257)))
   },
+  // recover secret from shares
+  get availableShares() { return parseInt(doc.availableShares) },
+  set availableShares(shares: number) { doc.availableShares = String(shares) },
 }
 
 // document automation
 let aut = {
+  // split secret into shares
   fillSecretNumbersFromText: () => 
     cont.secretNumbers = fromUTF8(doc.secretText),
   fixSecretNumbers: () => 
@@ -89,6 +101,17 @@ let aut = {
   displayPolynomial: () =>
     span('polynomialSpan').innerHTML =
       foldLeft(cont.coefficients, "P(x) = geheimnis", (c, result, index) => `${result} + ${c}x<sup>${index + 1}</sup>`),
+  // recover secret from shares
+  generateShareInputs: () => {
+    doc.shareInputs = Array(256).fill('').map((_, index) => 
+      `<p id="share${index + 1}Paragraph">Teil ${index + 1}: <input id="share${index + 1}}Input" type="text" size="45"></p>`
+    ).join('')
+  },
+  handleAvailableShares: () => {
+    cont.availableShares = limit(cont.availableShares, 2, 257)
+    for (let i = 1; i < 257; i++)
+      paragraph(`share${i}Paragraph`).hidden = i > cont.availableShares
+  },
 }
 
 const createShares = () => {
@@ -102,7 +125,7 @@ const createShares = () => {
   doc.sharesHtml = result
 }
 
-// wire the document functions
+// wire the document functions: split secret into shares
 aut.fillSecretNumbersFromText()
 aut.displayPolynomial()
 button('secretTextToNumbersButton').addEventListener('click', aut.fillSecretNumbersFromText)
@@ -115,3 +138,8 @@ radio('staticCoefficientsRadio').addEventListener('change', aut.displayPolynomia
 input('staticCoefficientsInput').addEventListener('change', aut.fixStaticCoefficients)
 input('staticCoefficientsInput').addEventListener('change', aut.displayPolynomial)
 button('createSharesButton').addEventListener('click', createShares)
+
+// wire the document functions: recover secret from shares
+aut.generateShareInputs()
+aut.handleAvailableShares()
+input('availableSharesInput').addEventListener('change', aut.handleAvailableShares)
