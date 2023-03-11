@@ -13,7 +13,7 @@
 
   <h3>Ein Geheimnis aufteilen:</h3>
   <p>Zu teilendes Geheimnis (Text): <input id="secretTextInput" type="text" value="Geheimnis"></p>
-  <p><button id="secretTextToNumbersButton">Zu Zahlen umwandeln (UTF-8)</button></p>
+  <p><button id="secretTextToNumbersButton">⇊ Zu Zahlen umwandeln (UTF-8) ⇊</button></p>
   <p>Zu teilendes Geheimnis (Zahlen 0-256 erlaubt):<br><input id="secretNumbersInput" type="text" size="50"></p>
   <p>Zu erstellende Teile n, mit k <= n <= 256:
     <input id="numberOfSharesInput" type="number" min="2" max="256" value="5"></p>
@@ -24,10 +24,16 @@
   <p><input type="radio" id="staticCoefficientsRadio" name="coefficients">
     Feste Koeffizienten - zur Demonstration: <input id="staticCoefficientsInput" type="text" value="1,5,3"></p>
   <p>Beispiel-Polynom: <span id="polynomialSpan"></span></p>
-  <p><button id="createSharesButton">Teile erstellen</button></p>
+  <p><button id="createSharesButton">⇊ Teile erstellen ⇊</button></p>
+  <p>--- Teile des Geheimnisses ---</p>
   <p><span id="shares"></span></p>
+  <p>--- Ende der Teile des Geheimnisses ---<br><br></p>
 
   <h3>Teile des Geheimnis zusammenfügen:</h3>
+  <p>Wiederhergestelltes Geheimnis (Text):<br><span id="restoredTextSpan">---</span></p>
+  <p><button id="recreatedToTextButton">⇈ Zu Text umwandeln (UTF-8) ⇈</button></p>
+  <p>Wiederhergestelltes Geheimnis (Zahlen):<br><span id="restoredNumbersSpan">---</span></p>
+  <p><button id="recreateButton">⇈ Geheimnis wiederhererstellen ⇈</button></p>
   <p>Anzahl Teile für Rekonstruktion:
     <input id="availableSharesInput" type="number" min="2" max="256" value="3"></p>
   <div id="sharesDiv">

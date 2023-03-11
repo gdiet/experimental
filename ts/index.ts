@@ -100,7 +100,7 @@ let aut = {
     cont.staticCoefficients = cont.staticCoefficients.map(c => limit(c, 0, 257)),
   displayPolynomial: () =>
     span('polynomialSpan').innerHTML =
-      foldLeft(cont.coefficients, "P(x) = geheimnis", (c, result, index) => `${result} + ${c}x<sup>${index + 1}</sup>`),
+      foldLeft(cont.coefficients, "P(x) = geheimnis", (c, result, index) => `${result} + ${c}x<sup>${index + 1}</sup>`) + ' | (mod 257)',
   // recover secret from shares
   generateShareInputs: () => {
     doc.shareInputs = Array(256).fill('').map((_, index) => 
@@ -115,14 +115,14 @@ let aut = {
 }
 
 const createShares = () => {
-  let polynomial = foldLeft(cont.coefficients, "P(x) = geheimnis", (_, result, index) => `${result} + c${index + 1}*x^${index + 1}`)
-  var result = `Teile des Geheimnisses:`
+  let polynomial = foldLeft(cont.coefficients, "P(x) = geheimnis", (_, result, index) => `${result} + c${index + 1}*x^${index + 1}`) + ' | (mod 257)'
+  let result: string[] = []
   let coefficients = cont.secretNumbers.map(_ => cont.coefficients)
   for (let x = 1; x <= cont.numberOfShares; x++) {
     let share = cont.secretNumbers.map((secret, index) => math.calculatePolynomial(x, [secret].concat(coefficients[index]), 257))
-    result += `<br><br>${polynomial}<br>P(${x})=${share.join(',')}`
+    result.push(`${polynomial}<br>P(${x})=${share.join(',')}`)
   }
-  doc.sharesHtml = result
+  doc.sharesHtml = result.join('<br><br>')
 }
 
 // wire the document functions: split secret into shares
