@@ -17,13 +17,8 @@ let math = {
             result = math.mod(result * factor, n);
         return result;
     },
-    calculatePolynomial: (x, coefficients, n) => foldLeft(coefficients, 0, (r, c, i) => math.mod(r + c * math.exp(x, i, n), n)),
-    // const interpolate = (data, x, n) => 
-    //     foldLeft(data, 0, (r, e1, i) =>
-    //         mod(foldLeft(data, e1.y, (t, e2, j) =>
-    //             i == j ? t : mod(t * (x - e2.x) * inverse(e1.x - e2.x, n), n)
-    //         ) + r, 257)
-    //     )
+    calculatePolynomial: (x, coefficients, n) => foldLeft(coefficients, 0, (c, r, i) => math.mod(r + c * math.exp(x, i, n), n)),
+    interpolate: (data, x, n) => foldLeft(data, 0, (e1, r, i) => math.mod(foldLeft(data, e1.y, (e2, t, j) => i == j ? t : math.mod(t * (x - e2.x) * math.inverse(e1.x - e2.x, n), n)) + r, 257)),
 };
 // document utilitiy functions
 let input = (id) => document.getElementById(id);
