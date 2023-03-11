@@ -7,38 +7,43 @@ let span = (id) => document.getElementById(id);
 let fromUTF8 = (text) => Array.from(new TextEncoder().encode(text));
 // min, max: The minimum is inclusive and the maximum is exclusive
 let random = (min, max) => Math.floor(Math.random() * (max - min) + min);
-let limit = (n, min, max) => Math.min(max, Math.max(min, n));
+let limit = (n, min, max) => Math.min(max - 1, Math.max(min, n));
 // document access
 let doc = {
     get secretText() { return input('secretTextInput').value; },
     get secretNumbers() { return input('secretNumbersInput').value; },
     set secretNumbers(s) { input('secretNumbersInput').value = s; },
-    get generatedCoefficients() { return span('generatedCoefficientsSpan').innerText; },
-    set generatedCoefficients(s) { span('generatedCoefficientsSpan').innerText = s; },
     get numberOfShares() { return input('numberOfSharesInput').value; },
     set numberOfShares(s) { input('numberOfSharesInput').value = s; },
     get threshold() { return input('thresholdInput').value; },
     set threshold(s) { input('thresholdInput').value = s; },
+    get generatedCoefficients() { return span('generatedCoefficientsSpan').innerText; },
+    set generatedCoefficients(s) { span('generatedCoefficientsSpan').innerText = s; },
+    get staticCoefficients() { return input('staticCoefficientsInput').value; },
+    set staticCoefficients(s) { input('staticCoefficientsInput').value = s; },
 };
-// typed document content
+// typed docustaticCoefficientsment content
 let cont = {
     get secretNumbers() { return doc.secretNumbers.split(',').map(n => parseInt(n) || 0); },
     set secretNumbers(numbers) { doc.secretNumbers = numbers.join(','); },
-    get generatedCoefficients() { return doc.generatedCoefficients.split(',').map(n => parseInt(n)); },
-    set generatedCoefficients(coefficients) { doc.generatedCoefficients = coefficients.join(','); },
     get numberOfShares() { return parseInt(doc.numberOfShares); },
     set numberOfShares(shares) { doc.numberOfShares = String(shares); },
     get threshold() { return parseInt(doc.threshold); },
     set threshold(threshold) { doc.threshold = String(threshold); },
+    get generatedCoefficients() { return doc.generatedCoefficients.split(',').map(n => parseInt(n)); },
+    set generatedCoefficients(coefficients) { doc.generatedCoefficients = coefficients.join(','); },
+    get staticCoefficients() { return doc.staticCoefficients.split(',').map(n => parseInt(n) || 0); },
+    set staticCoefficients(coefficients) { doc.staticCoefficients = coefficients.join(','); },
 };
 // document automation
 let aut = {
     fillSecretNumbersFromText: () => cont.secretNumbers = fromUTF8(doc.secretText),
     fixSecretNumbers: () => cont.secretNumbers = cont.secretNumbers.map(n => limit(n, 0, 257)),
     fixNumerOfShares: () => cont.numberOfShares = limit(cont.numberOfShares, cont.threshold, 257),
-    fixThreshold: () => cont.threshold = limit(cont.threshold, 2, cont.numberOfShares),
+    fixThreshold: () => cont.threshold = limit(cont.threshold, 2, cont.numberOfShares + 1),
     generateCoefficients: () => // The last coefficient must not be 0.
-     cont.generatedCoefficients = Array.from({ length: cont.threshold - 2 }, () => random(0, 257)).concat([random(1, 257)])
+     cont.generatedCoefficients = Array.from({ length: cont.threshold - 2 }, () => random(0, 257)).concat([random(1, 257)]),
+    fixStaticCoefficients: () => cont.staticCoefficients = cont.staticCoefficients.map(c => limit(c, 0, 257)),
 };
 aut.fillSecretNumbersFromText();
 aut.generateCoefficients();
@@ -48,7 +53,7 @@ input('numberOfSharesInput').addEventListener('change', aut.fixNumerOfShares);
 input('thresholdInput').addEventListener('change', aut.fixThreshold);
 button('randomCoefficientsRadio').addEventListener('change', aut.generateCoefficients);
 button('staticCoefficientsRadio').addEventListener('change', aut.generateCoefficients);
-input('userCoefficientsInput').addEventListener('change', aut.generateCoefficients);
+input('staticCoefficientsInput').addEventListener('change', aut.fixStaticCoefficients);
 // // Dynamic document content functions
 // const coefficients = () => {
 //   let coefficientsText = byId('staticCoefficients').checked ? byId('userCoefficients').value : byId('generatedCoefficients').innerHTML
