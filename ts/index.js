@@ -2,12 +2,17 @@
 // document utilitiy functions
 let input = (id) => document.getElementById(id);
 let button = (id) => document.getElementById(id);
+let radio = (id) => document.getElementById(id);
 let span = (id) => document.getElementById(id);
 // text utility functions
 let fromUTF8 = (text) => Array.from(new TextEncoder().encode(text));
 // min, max: The minimum is inclusive and the maximum is exclusive
 let random = (min, max) => Math.floor(Math.random() * (max - min) + min);
 let limit = (n, min, max) => Math.min(max - 1, Math.max(min, n));
+// nicer type signatures
+function foldLeft(array, zero, func) {
+    return array.reduce((t, a, i) => func(a, t, i), zero);
+}
 // document access
 let doc = {
     get secretText() { return input('secretTextInput').value; },
@@ -21,8 +26,10 @@ let doc = {
     set generatedCoefficients(s) { span('generatedCoefficientsSpan').innerText = s; },
     get staticCoefficients() { return input('staticCoefficientsInput').value; },
     set staticCoefficients(s) { input('staticCoefficientsInput').value = s; },
+    get staticCoefficientsSelected() { return radio('staticCoefficientsRadio').checked; },
+    set polynomial(s) { span('polynomialSpan').innerText = s; },
 };
-// typed docustaticCoefficientsment content
+// typed document content
 let cont = {
     get secretNumbers() { return doc.secretNumbers.split(',').map(n => parseInt(n) || 0); },
     set secretNumbers(numbers) { doc.secretNumbers = numbers.join(','); },
@@ -34,6 +41,11 @@ let cont = {
     set generatedCoefficients(coefficients) { doc.generatedCoefficients = coefficients.join(','); },
     get staticCoefficients() { return doc.staticCoefficients.split(',').map(n => parseInt(n) || 0); },
     set staticCoefficients(coefficients) { doc.staticCoefficients = coefficients.join(','); },
+    get coefficients() { return doc.staticCoefficientsSelected ? this.staticCoefficients : this.generatedCoefficients; },
+    get cleanedCoefficients() {
+        return cont.coefficients.concat(Array(cont.threshold - 1).fill(0)) // Ensure the right size and last != 0
+            .slice(0, cont.threshold - 1).map((c, i) => (c == 0 && i == cont.threshold - 2) ? 1 : c);
+    }
 };
 // document automation
 let aut = {
@@ -44,16 +56,24 @@ let aut = {
     generateCoefficients: () => // The last coefficient must not be 0.
      cont.generatedCoefficients = Array.from({ length: cont.threshold - 2 }, () => random(0, 257)).concat([random(1, 257)]),
     fixStaticCoefficients: () => cont.staticCoefficients = cont.staticCoefficients.map(c => limit(c, 0, 257)),
+    displayPolynomial: () => span('polynomialSpan').innerHTML =
+        foldLeft(cont.cleanedCoefficients, "P(x) = secret", (c, result, index) => `${result} + ${c}x<sup>${index + 1}</sup>`),
 };
 aut.fillSecretNumbersFromText();
 aut.generateCoefficients();
+aut.displayPolynomial();
 button('secretTextToNumbersButton').addEventListener('click', aut.fillSecretNumbersFromText);
 input('secretNumbersInput').addEventListener('change', aut.fixSecretNumbers);
 input('numberOfSharesInput').addEventListener('change', aut.fixNumerOfShares);
 input('thresholdInput').addEventListener('change', aut.fixThreshold);
+input('thresholdInput').addEventListener('change', aut.generateCoefficients);
+input('thresholdInput').addEventListener('change', aut.displayPolynomial);
 button('randomCoefficientsRadio').addEventListener('change', aut.generateCoefficients);
-button('staticCoefficientsRadio').addEventListener('change', aut.generateCoefficients);
+button('randomCoefficientsRadio').addEventListener('change', aut.displayPolynomial);
+radio('staticCoefficientsRadio').addEventListener('change', aut.generateCoefficients);
+radio('staticCoefficientsRadio').addEventListener('change', aut.displayPolynomial);
 input('staticCoefficientsInput').addEventListener('change', aut.fixStaticCoefficients);
+input('staticCoefficientsInput').addEventListener('change', aut.displayPolynomial);
 // // Dynamic document content functions
 // const coefficients = () => {
 //   let coefficientsText = byId('staticCoefficients').checked ? byId('userCoefficients').value : byId('generatedCoefficients').innerHTML
