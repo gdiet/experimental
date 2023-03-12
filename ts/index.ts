@@ -41,6 +41,7 @@ let limit = (n: number, min: number, max: number) => Math.min(max - 1, Math.max(
 function foldLeft<A, T>(array: A[], zero: T, func: (a: A, t: T, i: number) => T) {
   return array.reduce((t: T, a: A, i: number) => func(a, t, i), zero)
 }
+let newArray = (n: number) => Array(n).fill('')
 
 // document access
 let doc = {
@@ -78,7 +79,7 @@ let cont = {
   set staticCoefficients(coefficients: number[]) { doc.staticCoefficients = coefficients.join(',') },
   get coefficients() {
     return this.staticCoefficients
-      .concat(Array(cont.threshold - 1).fill(0)).slice(0, cont.threshold - 1) // ensure the right size
+      .concat(newArray(cont.threshold - 1)).slice(0, cont.threshold - 1) // ensure the right size
       .map(c => doc.staticCoefficientsSelected ? c : random(0, 257)) // next line: ensure last coefficient is not 0
       .map((c, i) => (c != 0 || i != cont.threshold - 2) ? c : (doc.staticCoefficientsSelected ? 1 : random(1, 257)))
   },
@@ -105,7 +106,7 @@ let aut = {
       foldLeft(cont.coefficients, "P(x) = geheimnis", (c, result, index) => `${result} + ${c}x<sup>${index + 1}</sup>`) + ' | (mod 257)',
   // recover secret from shares
   generateShareInputs: () => {
-    doc.shareInputs = Array(256).fill('').map((_, index) => 
+    doc.shareInputs = newArray(256).map((_, index) => 
       `<p id="share${index}Paragraph">Teil ${index + 1}: <input id="share${index}}Input" type="text" size="45"></p>`
     ).join('')
   },
@@ -128,15 +129,17 @@ const createShares = () => {
 }
 
 const recoverSecret = () => {
-  let providedParts = Array(cont.availableShares).fill('').map((_, index) => doc.shareInput(index))
+  let providedParts = newArray(cont.availableShares).map((_, index) => doc.shareInput(index))
   let rawParts = providedParts.map(part => {
-    let regex1 = /P\((\d*)\)=(.*)/g
-    let [_, xString, yStrings] = part.matchAll(regex1).next().value
-    let x = parseInt(xString) || 1
-    let ys = String(yStrings).split(',').map(s => parseInt(s) || 0)
-    return {x, ys}
+    let [_, xString, yStrings] = part.matchAll(/P\((\d*)\)=(.*)/g).next().value
+    return {x: parseInt(xString) || 1, ys: String(yStrings).split(',').map(s => parseInt(s) || 0)}
   })
-  console.log(rawParts)
+  let yLength = foldLeft(rawParts, 0, (part, result) => Math.max(result, part.ys.length))
+  let restored = newArray(yLength).map((_, index) => {
+    let parts = rawParts.map(({x,ys}) => { return {x, y: ys[index] || 0} })
+    return math.interpolate(parts, 0, 257)
+  })
+  console.log(restored)
 }
 
 // wire the document functions: split secret into shares
