@@ -122,6 +122,9 @@ let aut = {
   },
   recoveredSecretToText: () =>
     doc.restoredText = toUTF8(cont.restoredNumbers),
+  clearShares: () => {
+    for (let i = 0; i < 256; i++) doc.setShareInput(i, '')
+  },
 }
 
 const createShares = () => {
@@ -173,4 +176,5 @@ aut.handleAvailableShares()
 input('availableSharesInput').addEventListener('change', aut.handleAvailableShares)
 button('recreateButton').addEventListener('click', recoverSecret)
 button('recreatedToTextButton').addEventListener('click', aut.recoveredSecretToText)
+button('clearSharesButton').addEventListener('click', aut.clearShares)
 

@@ -105,6 +105,10 @@ let aut = {
             paragraph(`share${i}Paragraph`).hidden = i >= cont.availableShares;
     },
     recoveredSecretToText: () => doc.restoredText = toUTF8(cont.restoredNumbers),
+    clearShares: () => {
+        for (let i = 0; i < 256; i++)
+            doc.setShareInput(i, '');
+    },
 };
 const createShares = () => {
     let polynomial = foldLeft(cont.coefficients, "P(x) = geheimnis", (_, result, index) => `${result} + c${index + 1}*x^${index + 1}`) + ' | (mod 257)';
@@ -151,4 +155,5 @@ aut.handleAvailableShares();
 input('availableSharesInput').addEventListener('change', aut.handleAvailableShares);
 button('recreateButton').addEventListener('click', recoverSecret);
 button('recreatedToTextButton').addEventListener('click', aut.recoveredSecretToText);
+button('clearSharesButton').addEventListener('click', aut.clearShares);
 //# sourceMappingURL=index.js.map
