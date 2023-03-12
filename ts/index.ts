@@ -177,4 +177,3 @@ input('availableSharesInput').addEventListener('change', aut.handleAvailableShar
 button('recreateButton').addEventListener('click', recoverSecret)
 button('recreatedToTextButton').addEventListener('click', aut.recoveredSecretToText)
 button('clearSharesButton').addEventListener('click', aut.clearShares)
-
