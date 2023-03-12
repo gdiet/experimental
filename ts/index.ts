@@ -32,6 +32,7 @@ let paragraph = (id: string) => document.getElementById(id) as HTMLParagraphElem
 
 // text utility functions
 let fromUTF8 = (text: string) => Array.from(new TextEncoder().encode(text))
+let toUTF8 = (bytes: number[]) => new TextDecoder().decode(new Uint8Array(bytes))
 
 // min, max: The minimum is inclusive and the maximum is exclusive
 let random = (min: number, max: number) => Math.floor(Math.random() * (max - min) + min)
@@ -56,7 +57,7 @@ let doc = {
   get staticCoefficients() { return input('staticCoefficientsInput').value },
   set staticCoefficients(s: string) { input('staticCoefficientsInput').value = s },
   get staticCoefficientsSelected() { return radio('staticCoefficientsRadio').checked },
-  set polynomial(s: string) { span('polynomialSpan').innerText = s },
+  set polynomial(s: string) { span('polynomialSpan').innerHTML = s },
   set sharesHtml(s: string) { span('shares').innerHTML = s },
   // recover secret from shares
   get availableShares() { return input('availableSharesInput').value },
@@ -64,6 +65,9 @@ let doc = {
   set shareInputs(s: string) { div('sharesDiv').innerHTML = s },
   shareInput: (index: number) => input(`share${index}}Input`).value,
   setShareInput: (index: number, s: string) => input(`share${index}}Input`).value = s,
+  get restoredNumbers() { return span('restoredNumbersSpan').innerHTML },
+  set restoredNumbers(s: string) { span('restoredNumbersSpan').innerHTML = s },
+  set restoredText(s: string) { span('restoredTextSpan').innerHTML = s },
 }
 
 // typed document content
@@ -86,6 +90,7 @@ let cont = {
   // recover secret from shares
   get availableShares() { return parseInt(doc.availableShares) },
   set availableShares(shares: number) { doc.availableShares = String(shares) },
+  get restoredNumbers() { return doc.restoredNumbers.split(',').map(n => parseInt(n) || 32) }
 }
 
 // document automation
@@ -102,7 +107,7 @@ let aut = {
   fixStaticCoefficients: () =>
     cont.staticCoefficients = cont.staticCoefficients.map(c => limit(c, 0, 257)),
   displayPolynomial: () =>
-    span('polynomialSpan').innerHTML =
+    doc.polynomial = 
       foldLeft(cont.coefficients, "P(x) = geheimnis", (c, result, index) => `${result} + ${c}x<sup>${index + 1}</sup>`) + ' | (mod 257)',
   // recover secret from shares
   generateShareInputs: () => {
@@ -115,6 +120,8 @@ let aut = {
     for (let i = 0; i < 256; i++)
       paragraph(`share${i}Paragraph`).hidden = i >= cont.availableShares
   },
+  recoveredSecretToText: () =>
+    doc.restoredText = toUTF8(cont.restoredNumbers),
 }
 
 const createShares = () => {
@@ -139,7 +146,7 @@ const recoverSecret = () => {
     let parts = rawParts.map(({x,ys}) => { return {x, y: ys[index] || 0} })
     return math.interpolate(parts, 0, 257)
   })
-  console.log(restored)
+  doc.restoredNumbers = restored.join(',')
 }
 
 // wire the document functions: split secret into shares
@@ -165,3 +172,5 @@ doc.setShareInput(2, 'P(2)=116,248,66,57,233,171,105,39,119')
 aut.handleAvailableShares()
 input('availableSharesInput').addEventListener('change', aut.handleAvailableShares)
 button('recreateButton').addEventListener('click', recoverSecret)
+button('recreatedToTextButton').addEventListener('click', aut.recoveredSecretToText)
+

@@ -29,6 +29,7 @@ let div = (id) => document.getElementById(id);
 let paragraph = (id) => document.getElementById(id);
 // text utility functions
 let fromUTF8 = (text) => Array.from(new TextEncoder().encode(text));
+let toUTF8 = (bytes) => new TextDecoder().decode(new Uint8Array(bytes));
 // min, max: The minimum is inclusive and the maximum is exclusive
 let random = (min, max) => Math.floor(Math.random() * (max - min) + min);
 let limit = (n, min, max) => Math.min(max - 1, Math.max(min, n));
@@ -50,7 +51,7 @@ let doc = {
     get staticCoefficients() { return input('staticCoefficientsInput').value; },
     set staticCoefficients(s) { input('staticCoefficientsInput').value = s; },
     get staticCoefficientsSelected() { return radio('staticCoefficientsRadio').checked; },
-    set polynomial(s) { span('polynomialSpan').innerText = s; },
+    set polynomial(s) { span('polynomialSpan').innerHTML = s; },
     set sharesHtml(s) { span('shares').innerHTML = s; },
     // recover secret from shares
     get availableShares() { return input('availableSharesInput').value; },
@@ -58,6 +59,9 @@ let doc = {
     set shareInputs(s) { div('sharesDiv').innerHTML = s; },
     shareInput: (index) => input(`share${index}}Input`).value,
     setShareInput: (index, s) => input(`share${index}}Input`).value = s,
+    get restoredNumbers() { return span('restoredNumbersSpan').innerHTML; },
+    set restoredNumbers(s) { span('restoredNumbersSpan').innerHTML = s; },
+    set restoredText(s) { span('restoredTextSpan').innerHTML = s; },
 };
 // typed document content
 let cont = {
@@ -79,6 +83,7 @@ let cont = {
     // recover secret from shares
     get availableShares() { return parseInt(doc.availableShares); },
     set availableShares(shares) { doc.availableShares = String(shares); },
+    get restoredNumbers() { return doc.restoredNumbers.split(',').map(n => parseInt(n) || 32); }
 };
 // document automation
 let aut = {
@@ -88,7 +93,7 @@ let aut = {
     fixNumerOfShares: () => cont.numberOfShares = limit(cont.numberOfShares, cont.threshold, 257),
     fixThreshold: () => cont.threshold = limit(cont.threshold, 2, cont.numberOfShares + 1),
     fixStaticCoefficients: () => cont.staticCoefficients = cont.staticCoefficients.map(c => limit(c, 0, 257)),
-    displayPolynomial: () => span('polynomialSpan').innerHTML =
+    displayPolynomial: () => doc.polynomial =
         foldLeft(cont.coefficients, "P(x) = geheimnis", (c, result, index) => `${result} + ${c}x<sup>${index + 1}</sup>`) + ' | (mod 257)',
     // recover secret from shares
     generateShareInputs: () => {
@@ -99,6 +104,7 @@ let aut = {
         for (let i = 0; i < 256; i++)
             paragraph(`share${i}Paragraph`).hidden = i >= cont.availableShares;
     },
+    recoveredSecretToText: () => doc.restoredText = toUTF8(cont.restoredNumbers),
 };
 const createShares = () => {
     let polynomial = foldLeft(cont.coefficients, "P(x) = geheimnis", (_, result, index) => `${result} + c${index + 1}*x^${index + 1}`) + ' | (mod 257)';
@@ -121,7 +127,7 @@ const recoverSecret = () => {
         let parts = rawParts.map(({ x, ys }) => { return { x, y: ys[index] || 0 }; });
         return math.interpolate(parts, 0, 257);
     });
-    console.log(restored);
+    doc.restoredNumbers = restored.join(',');
 };
 // wire the document functions: split secret into shares
 aut.fillSecretNumbersFromText();
@@ -144,4 +150,5 @@ doc.setShareInput(2, 'P(2)=116,248,66,57,233,171,105,39,119');
 aut.handleAvailableShares();
 input('availableSharesInput').addEventListener('change', aut.handleAvailableShares);
 button('recreateButton').addEventListener('click', recoverSecret);
+button('recreatedToTextButton').addEventListener('click', aut.recoveredSecretToText);
 //# sourceMappingURL=index.js.map
