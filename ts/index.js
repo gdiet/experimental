@@ -61,7 +61,9 @@ let doc = {
     setShareInput: (index, s) => input(`share${index}}Input`).value = s,
     get restoredNumbers() { return span('restoredNumbersSpan').innerHTML; },
     set restoredNumbers(s) { span('restoredNumbersSpan').innerHTML = s; },
+    set exampleInterpolation(s) { span('exampleInterpolationSpan').innerHTML = s; },
     set restoredText(s) { span('restoredTextSpan').innerHTML = s; },
+    set divisionTableMod257(s) { span('divisionTableMod257Span').innerHTML = s; },
 };
 // typed document content
 let cont = {
@@ -109,6 +111,10 @@ let aut = {
         for (let i = 0; i < 256; i++)
             doc.setShareInput(i, '');
     },
+    createDivisionTableMod257: () => {
+        let parts = newArray(256).map((_, index) => `${index + 1}: ${math.inverse(index + 1, 257)}`);
+        doc.divisionTableMod257 = parts.join('<br>');
+    },
 };
 const createShares = () => {
     let polynomial = foldLeft(cont.coefficients, "P(x) = geheimnis", (_, result, index) => `${result} + c${index + 1}*x^${index + 1}`) + ' | (mod 257)';
@@ -132,6 +138,10 @@ const recoverSecret = () => {
         return math.interpolate(parts, 0, 257);
     });
     doc.restoredNumbers = restored.join(',');
+    // create example interpolation
+    let exampleParts = rawParts.map(({ x, ys }) => { return { x, y: ys[0] || 0 }; });
+    let exampleInterpolation = foldLeft(exampleParts, Array(), (e1, r, i) => r.concat([foldLeft(exampleParts, `${e1.y}`, (e2, t, j) => i == j ? t : `${t} * (${0}-${e2.x})/(${e1.x}-${e2.x})`)]));
+    doc.exampleInterpolation = 'Geheimnis =<br>' + exampleInterpolation.join(' +<br>') + ' | (mod 257)';
 };
 // wire the document functions: split secret into shares
 aut.fillSecretNumbersFromText();
@@ -152,6 +162,7 @@ doc.setShareInput(0, 'P(1)=42,139,86,192,150,177,247,208,184');
 doc.setShareInput(1, 'P(4)=59,165,20,137,256,194,12,170,101');
 doc.setShareInput(2, 'P(2)=116,248,66,57,233,171,105,39,119');
 aut.handleAvailableShares();
+aut.createDivisionTableMod257();
 input('availableSharesInput').addEventListener('change', aut.handleAvailableShares);
 button('recreateButton').addEventListener('click', recoverSecret);
 button('recreatedToTextButton').addEventListener('click', aut.recoveredSecretToText);

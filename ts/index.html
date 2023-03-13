@@ -33,8 +33,10 @@
   <p>Wiederhergestelltes Geheimnis (Text):<br><span id="restoredTextSpan">---</span></p>
   <p><button id="recreatedToTextButton">⇈ Zu Text umwandeln (UTF-8) ⇈</button></p>
   <p>Wiederhergestelltes Geheimnis (Zahlen):<br><span id="restoredNumbersSpan">---</span></p>
-  <p>Beispielberechnung für die erste Zahl:<br><!-- TODO -->
-    <span id="exampleInterpolationSpan">--- noch nicht implementiert ---</span></p>
+  <p>Beispielberechnung: Lagrange-Interpolation bei x = 0 für die erste Zahl.<br>
+    Beachte, dass die Division im Raum (mod 257) anders funktioniert als<br>
+    mit reellen oder ganzen Zahlen - siehe die Tabelle der Inversen unten.<br>
+    <span id="exampleInterpolationSpan">---</span></p>
   <p><button id="recreateButton">⇈ Geheimnis wiederhererstellen ⇈</button></p>
   <p>Anzahl Teile für Rekonstruktion:
     <input id="availableSharesInput" type="number" min="2" max="256" value="3"></p>
@@ -45,6 +47,9 @@
       <p id="share2Paragraph">Teil 2: <input id="share2Input" type="text" size="45"></p>
     -->
   </div>
+  <p>Tabelle der Inversen n: <sup>1</sup>/<sub>n</sub> für den Zahlenraum (mod 257)<br>
+    so dass gilt n * <sup>1</sup>/<sub>n</sub> = 1 | (mod 257):<br>
+    <span id="divisionTableMod257Span">---</span></p>
     
 </body>
 
