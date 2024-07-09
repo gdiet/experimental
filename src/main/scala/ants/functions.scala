@@ -13,19 +13,17 @@ def relativePosition(location: XY, terrainSize: XY, direction: Char): XY =
   })
 
 def maybeMove(ant: Ant, direction: String, weight: Int, board: Board): Option[AntState] =
-  require(weight > 0)
-  val AntState(location, power) = board.ants(ant)
+  require(weight > 0, s"Weight must be positive but is $weight")
+  val AntState(location, power) = board.ants.getOrElse(ant, throw new IllegalArgumentException(s"Unknown ant: $ant"))
   val startElevation =
     board.terrain.fields(location).elevation
       + board.antsAt(location).count(_.player == ant.player) - 1
-  val (_, virtualElevations) = direction.zipWithIndex.foldLeft(location -> Seq.empty[(XY, Int)]) {
+  val (_, requiredPower) = direction.zipWithIndex.foldLeft(location -> Seq.empty[(XY, Int)]) {
     case (xy -> locations, direction -> index) =>
       val newLocation = relativePosition(xy, board.terrain.size, direction)
-      val virtualElevation = board.terrain.fields(location).elevation + index + 1
-      newLocation -> (locations :+ (newLocation -> math.max(virtualElevation, startElevation)))
+      val incline = board.terrain.fields(location).elevation + index + 1 - startElevation
+      newLocation -> (locations :+ (newLocation -> math.max(incline, 0) * weight))
   }
-  val actualPath =
-    virtualElevations.takeWhile((xy, virtualElevation) => (virtualElevation - startElevation) * weight <= power)
-  actualPath match // Why Seq and not Vector? See https://stackoverflow.com/q/78722680/1312349
-    case Seq() => None
-    case _ :+ (xy, virtualElevation) => Some(AntState(xy, power - (virtualElevation - startElevation) * weight))
+  requiredPower
+    .takeWhile((_, needed) => needed <= power).lastOption
+    .map((newLocation, requiredPower) => AntState(newLocation, power - requiredPower))
