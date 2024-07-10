@@ -20,7 +20,7 @@ def maybeMove(ant: Ant, direction: String, weight: Int, board: Board): Option[An
       relativePosition(xy, board.terrain.size, direction) match
         case None => xy -> (locations :+ (xy -> Int.MaxValue))
         case Some(newLocation) =>
-          val incline = board.terrain.fields(location).elevation + index + 1 - startElevation
+          val incline = board.terrain.fields(newLocation).elevation + index + 1 - startElevation
           newLocation -> (locations :+ (newLocation -> math.max(incline, 1) * weight))
   }
   requiredPower
