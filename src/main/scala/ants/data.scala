@@ -16,7 +16,10 @@ case class Nest(elevation: Int, food: Int) extends Field
 
 case class Cell(elevation: Int, food: Int) extends Field
 
-case class Terrain(size: XY, fields: Map[XY, Field] = Map().withDefaultValue(Cell(0, 0)))
+case class Terrain(size: XY, fields: Map[XY, Field])
+object Terrain:
+  def apply(size: XY, fields: Map[XY, Field] = Map().withDefaultValue(Cell(0, 0))): Terrain =
+    new Terrain(size, fields.withDefaultValue(Cell(0, 0)))
 
 case class Board(terrain: Terrain, ants: Map[Ant, AntState]) {
   lazy val antsAt: Map[XY, Set[Ant]] = ants.groupBy(_._2.xy).map((xy, entries) => xy -> entries.keySet)
