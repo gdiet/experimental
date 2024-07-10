@@ -22,7 +22,7 @@ def maybeMove(ant: Ant, direction: String, weight: Int, board: Board): Option[An
     case (xy -> locations, direction -> index) =>
       val newLocation = relativePosition(xy, board.terrain.size, direction)
       val incline = board.terrain.fields(location).elevation + index + 1 - startElevation
-      newLocation -> (locations :+ (newLocation -> math.max(incline, 0) * weight))
+      newLocation -> (locations :+ (newLocation -> math.max(incline, 1) * weight))
   }
   requiredPower
     .takeWhile((_, needed) => needed <= power).lastOption
