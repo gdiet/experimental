@@ -31,3 +31,15 @@ class MaybeMoveSpec extends AnyFlatSpec with should.Matchers:
     val result = maybeMove(ant, "NW", 1, board)
     result should be(Some(AntState(XY(9, 9), 0)))
   }
+
+  "Invalid direction: 'XN' from (6, 6) with power 2 and weight 1" should "result in None" in {
+    val board = Board(terrain, Map(ant -> AntState(XY(6, 6), 2)))
+    val result = maybeMove(ant, "XN", 1, board)
+    result should be(None)
+  }
+
+  "Invalid direction: 'NXN' from (6, 6) with power 2 and weight 1" should "result in (6, 5) with power 1" in {
+    val board = Board(terrain, Map(ant -> AntState(XY(6, 6), 2)))
+    val result = maybeMove(ant, "NXN", 1, board)
+    result should be(Some(AntState(XY(6, 5), 1)))
+  }
