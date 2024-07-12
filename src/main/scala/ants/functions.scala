@@ -1,12 +1,14 @@
 package ants
 
+def relativePosition(location: XY, terrainSize: XY, dx: Int, dy: Int): XY =
+  XY(mod(location.x + dx, terrainSize.x), mod(location.y + dy, terrainSize.y))
+
 def relativePosition(location: XY, terrainSize: XY, direction: Char): Option[XY] =
-  import location.{x, y}, terrainSize.{x => width, y => height}
   direction match
-    case 'N' => Some(XY(x, mod(y - 1, height)))
-    case 'S' => Some(XY(x, mod(y + 1, height)))
-    case 'E' => Some(XY(mod(x + 1, width), y))
-    case 'W' => Some(XY(mod(x - 1, width), y))
+    case 'N' => Some(relativePosition(location, terrainSize, 0, -1))
+    case 'S' => Some(relativePosition(location, terrainSize, 0, 1))
+    case 'W' => Some(relativePosition(location, terrainSize, -1, 0))
+    case 'E' => Some(relativePosition(location, terrainSize, 1, 0))
     case other => None
 
 def maybeMove(ant: Ant, direction: String, weight: Int, board: Board): Option[AntState] =
