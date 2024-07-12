@@ -53,7 +53,7 @@ def visibility(board: Board): Map[Player, Set[XY]] =
       val candidates =
         visibilityOffsets.map(relativePosition(location, board.terrain.size, _, _) -> _).toMap
           -- visibleLocations
-      candidates.collect {
+      visibleLocations ++ candidates.collect {
         case (xy, distance)
           if math.abs(fields(xy).elevation - elevation) + distance - numberOfAnts < 5 =>
           xy
