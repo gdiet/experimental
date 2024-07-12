@@ -28,3 +28,35 @@ def maybeMove(ant: Ant, direction: String, weight: Int, board: Board): Option[An
   requiredPower
     .takeWhile((_, needed) => needed <= power).lastOption
     .map((newLocation, requiredPower) => AntState(newLocation, power - requiredPower))
+
+/** dx, dy, distance for all fields in a +-3 square with distance > 0 and < 5 */
+val visibilityOffsets: Set[(Int, Int, Int)] =
+  (for
+    x <- -3 to 3; y <- -3 to 3
+    if x != 0 || y != 0
+    dist = math.abs(x) + math.abs(y)
+    if dist < 5
+  yield (x, y, dist)).toSet
+
+/** visibilityOffsets area around ants where elevation difference + distance - number of ants < 5 */
+def visibility(board: Board): Map[Player, Set[XY]] =
+  import board.terrain.fields
+
+  val numberOfAntsByPlayerAndLocation: Map[Player, Map[XY, Int]] =
+    board.ants
+      .groupBy(_._1.player)
+      .map((player, ants) => player -> ants.groupBy(_._2.xy).map((xy, ants) => xy -> ants.size))
+
+  numberOfAntsByPlayerAndLocation.map((player, locations) =>
+    player -> locations.foldLeft(locations.keySet) { case (visibleLocations, (location, numberOfAnts)) =>
+      val elevation = fields(location).elevation
+      val candidates =
+        visibilityOffsets.map(relativePosition(location, board.terrain.size, _, _) -> _).toMap
+          -- visibleLocations
+      candidates.collect {
+        case (xy, distance)
+          if math.abs(fields(xy).elevation - elevation) + distance - numberOfAnts < 5 =>
+          xy
+      }.toSet
+    }
+  )
