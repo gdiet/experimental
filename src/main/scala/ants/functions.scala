@@ -51,12 +51,14 @@ def visibility(board: Board): Map[Player, Set[XY]] =
     player -> locations.foldLeft(locations.keySet) { case (visibleLocations, (location, numberOfAnts)) =>
       val elevation = fields(location).elevation
       val candidates =
-        visibilityOffsets.map(relativePosition(location, board.terrain.size, _, _) -> _).toMap
-          -- visibleLocations
-      visibleLocations ++ candidates.collect {
-        case (xy, distance)
-          if math.abs(fields(xy).elevation - elevation) + distance - numberOfAnts < 5 =>
-          xy
-      }.toSet
+        visibilityOffsets.map(relativePosition(location, board.terrain.size, _, _) -> _).toMap -- visibleLocations
+      visibleLocations ++ candidates.flatMap {
+        case (xy, distance) =>
+          val localElevation = fields(xy).elevation
+          if (
+            (localElevation >= (elevation - 4 + distance)) &&
+              (localElevation <= (elevation + numberOfAnts + 4 - distance))
+          ) Some(xy) else None
+      }
     }
   )
