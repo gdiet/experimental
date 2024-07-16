@@ -41,3 +41,33 @@ The game is played in turns. Each turn, the game engine calls the code of each p
 1. Breeding: New ants are bred in the anthill.
 1. Drowning: Ants on flooded cells drown, elevating the cell by 1.
 1. Victory: The game engine checks for victory conditions.
+
+### Phase: Food
+
+Each turn, on a random location of each 10x10 board tile, one food item may appear. No food items appear if the random location
+
+* is flooded,
+* contains one or more food items or
+* is an anthill.
+
+### Phase: Empowerment
+
+The power of each ant increases by 1.
+
+### Phase: Commands
+
+For each player, the game engine computes which parts of the board are visible. Then it hands over this visibility information together with some meta information to the player's code, which sends a response containing commands to its ants.
+
+Player code must be stateless. In the response to the game engine's commands request, player code can store information in a state object, which is handed over to the player code in the next turn's commands request.
+
+### Phase: Terrain
+
+### Phase: Movement
+
+### Phase: Combat
+
+### Phase: Breeding
+
+### Phase: Drowning
+
+### Phase: Victory
