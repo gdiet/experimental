@@ -39,7 +39,7 @@ val visibilityOffsets: Set[(Int, Int, Int)] =
   yield (x, y, dist)).toSet
 
 /** visibilityOffsets area around ants where elevation difference + distance - number of ants < 5 */
-def visibility(board: Board): Map[Player, Set[XY]] =
+def visibleFields(board: Board): Map[Player, Set[XY]] =
   import board.terrain.fields
 
   val numberOfAntsByPlayerAndLocation: Map[Player, Map[XY, Int]] =
@@ -62,3 +62,24 @@ def visibility(board: Board): Map[Player, Set[XY]] =
       }
     }
   )
+
+def phaseFood(board: Board): Board =
+  val XY(sizeX, sizeY) = board.terrain.size
+  val random = new scala.util.Random()
+  val newFoodLocations = for
+    tileX <- 0 to sizeX by 10
+    tileY <- 0 to sizeY by 10
+    x = tileX + random.between(0, 10)
+    y = tileY + random.between(0, 10)
+    if x < sizeX && y < sizeY
+    field = board.terrain.fields(XY(x, y))
+    if field.food == 0 && field.elevation >= 0 && !field.isInstanceOf[Nest]
+  yield XY(x, y)
+  newFoodLocations.foldLeft(board) { case (board, xy) =>
+    val updatedField = board.terrain.fields(xy).addFood(1)
+    board._fields(_.updated(xy, updatedField))
+  }
+
+def phaseEmpowerment(board: Board): Board =
+  val empoweredAnts = board.ants.map((ant, state) => ant -> state.copy(power = state.power + 1))
+  board.copy(ants = empoweredAnts)
