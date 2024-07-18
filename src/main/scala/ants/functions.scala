@@ -63,6 +63,8 @@ def visibleFields(board: Board): Map[Player, Set[XY]] =
     }
   )
 
+// ######## Phases ########
+
 def phaseFood(board: Board): Board =
   val XY(sizeX, sizeY) = board.terrain.size
   val random = new scala.util.Random()

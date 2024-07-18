@@ -58,9 +58,25 @@ The power of each ant increases by 1.
 
 For each player, the game engine computes which parts of the board are visible. Then it hands over this visibility information together with some meta information to the player's code, which sends a response containing commands to its ants.
 
+Commands are issued as ID / command pairs. Ants can receive multiple commands. Commands are executed in the phase order and within a phase sequentially.
+
 Player code must be stateless. In the response to the game engine's commands request, player code can store information in a state object, which is handed over to the player code in the next turn's commands request.
 
 ### Phase: Terrain
+
+The command codes for terrain are 'r' (raise) and 'l' (lower). Raising or lowering terrain features by more than 1 unit is commanded by repeating the command code accordingly, e.g. 'rrr'.
+
+Ants can alter terrain elevation remotely, but only on an interconnected path of cells. The path is described by directions 'n' (north), 'e' (east), 's' (south) and 'w' (west).
+
+Terrain modification costs power. The power of an ant is reduced by the absolute value of the terrain change. If the ant's power is not sufficient, the terrain change is executed partially.
+
+Example: For an ant located on (2,4), "rrnwsn" has the following effect if the ant's power is sufficient (10 or more):
+
+* The cell (2,4) is raised by 2 units.
+* The cell (2,3) is raised by 2 units.
+* The cell (1,3) is raised by 2 units.
+* The cell (1,4) is raised by 2 units.
+* The cell (1,3) is raised by 2 units - so in total it is raised by 4 units.
 
 ### Phase: Movement
 
